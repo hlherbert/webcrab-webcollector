@@ -12,7 +12,7 @@ public class TaobaoItem {
     //原价
     private Double price;
     //优惠价(淘宝价)
-    private String pricePromote;
+    private Double pricePromote;
     //库存
     private Integer stock;
     //基本信息(分类、尺寸等）
@@ -52,11 +52,11 @@ public class TaobaoItem {
         this.price = price;
     }
 
-    public String getPricePromote() {
+    public Double getPricePromote() {
         return pricePromote;
     }
 
-    public void setPricePromote(String pricePromote) {
+    public void setPricePromote(Double pricePromote) {
         this.pricePromote = pricePromote;
     }
 

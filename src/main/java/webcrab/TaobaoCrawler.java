@@ -1,11 +1,20 @@
 package webcrab;
 
+import cn.edu.hfut.dmic.webcollector.model.CrawlDatum;
 import cn.edu.hfut.dmic.webcollector.model.CrawlDatums;
 import cn.edu.hfut.dmic.webcollector.model.Page;
 import cn.edu.hfut.dmic.webcollector.plugin.berkeley.BreadthCrawler;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import webcrab.dao.TaobaoItemFileDao;
 import webcrab.model.TaobaoItem;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,16 +28,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author hu
  */
 public class TaobaoCrawler extends BreadthCrawler {
-    private static final String ITEM_PAGE="ITEM";
-    private static final String AMP_PAGE="AMP";
+    private static final String OUTPUT_DIR = "out";
+    private static final String ITEM_PAGE="ITEM";//商品首页
+    private static final String DETAIL_PAGE="DETAIL";//详情页
+    private static final String AMP_PAGE="AMP";//商品lite,可以看到优惠价
 
     private TaobaoItemFileDao dao;
-    private Map<Integer, TaobaoItem> items = new ConcurrentHashMap<>();
+    private Map<String, TaobaoItem> items = new ConcurrentHashMap<>();
+
+    // javascript engine
+    //private ScriptEngine jsEngine;
+
     /**
-     * @param crawlPath crawlPath is the path of the directory which maintains
-     *                  information of this crawler
-     * @param autoParse if autoParse is true,BreadthCrawler will auto extract
-     *                  links which match regex rules from pag
+     * @param crawlPath 爬虫唯一名
+     * @param autoParse 是否自动加入下一轮的URL
      */
     public TaobaoCrawler(String crawlPath, boolean autoParse, TaobaoItemFileDao dao) {
         super(crawlPath, autoParse);
@@ -43,6 +56,10 @@ public class TaobaoCrawler extends BreadthCrawler {
         //this.addRegex("-.*\\.(jpg|png|gif).*");
         /*do not fetch url contains #*/
         //this.addRegex("-.*#.*");
+
+        //ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+        //jsEngine = engine;
+
     }
 
     @Override
@@ -54,16 +71,25 @@ public class TaobaoCrawler extends BreadthCrawler {
             String id = page.url().replace("https://item.taobao.com/item.htm?id=","");
             System.out.println("id="+id);
 
-            /*we use jsoup to parse page*/
-            //Document doc = page.doc();
+            // 宝贝一般信息
+            String title = page.selectText("div#J_Title>h3");
+            Integer stock = page.selectInt("span#J_SpanStock");
+            Double price = page.selectDouble("strong#J_StrPrice>em.tb-rmb-num");
+            Elements basicInfoEles = page.select("div#attributes>ul>li");
 
-            /*extract title and content of news by css selector*/
-            String title = page.selectText("div[id=J_Title]>h3");
-            Integer stock = page.selectInt("span[id=J_SpanStock]");
-            Double price = page.selectDouble("strong[id=J_StrPrice]>em[class=tb-rmb-num]");
+            // 宝贝详情
+            // 是通过javascript加载的，不能直接从html获取到，因此需要先得到详情URL，然后发请求再获取
+            String descUrlJson = page.regex(".*\\bdescUrl\\s*:.*,");
+            int startDescHttpUrl = descUrlJson.lastIndexOf("?");
+            int endDescHttpsUrl = descUrlJson.lastIndexOf(":");
+            String descHttpUri = descUrlJson.substring(startDescHttpUrl,endDescHttpsUrl);
+            startDescHttpUrl = descHttpUri.indexOf("'");
+            endDescHttpsUrl = descHttpUri.lastIndexOf("'");
+            descHttpUri = descHttpUri.substring(startDescHttpUrl+1, endDescHttpsUrl);
+            descHttpUri = "http:"+descHttpUri;
+            String detail = descHttpUri;
 
-
-            String content = page.html();//page.select("div#artibody", 0).text();
+            // 组装宝贝对象
             TaobaoItem taobaoItem = new TaobaoItem();
             taobaoItem.setId(id);
             taobaoItem.setTaobaoUrl(url);
@@ -71,29 +97,53 @@ public class TaobaoCrawler extends BreadthCrawler {
             taobaoItem.setPrice(price);
             //taobaoItem.setPricePromote();
             taobaoItem.setStock(stock);
-            //taobaoItem.setBasicInfo();
-            //taobaoItem.setDetail();
 
+            // 基本信息
+            StringBuffer buf = new StringBuffer();
+            for (String basicInfo : basicInfoEles.eachText()) {
+                buf.append(basicInfo + "\n");
+            }
+            taobaoItem.setBasicInfo(buf.toString());
+            taobaoItem.setDetail(detail);
+            items.put(id, taobaoItem);
 
-            dao.write(taobaoItem);
-
-            /*If you want to add urls to crawl,add them to nextLink*/
-            /*WebCollector automatically filters links that have been fetched before*/
-        /*If autoParse is true and the link you add to nextLinks does not
-          match the regex rules,the link will also been filtered.*/
             //next.add("http://xxxxxx.com");
             //next为下次迭代
-
             String ampUrl = MessageFormat.format( "https://www.taobao.com/list/item-amp/{0}.html",id);
             next.add(ampUrl,AMP_PAGE);
 
+            // 下次爬详情URL
+            CrawlDatum descDatum = new CrawlDatum();
+            descDatum.url(descHttpUri);
+            descDatum.type(DETAIL_PAGE);
+            descDatum.meta("id", id);
+            next.add(descDatum);
             // 如果开启了autoParse, 则这里不用手动添加url到next, Crawler会根据设置的规则，自动提取page中的url加入next.
             // 在此基础上，也可以手动加入url,但是必须符合之前设置的规则，否则会被过滤。
         } else if (page.matchType(AMP_PAGE)) {
             // lite page
             String content = page.html();//page.select("div#artibody", 0).text();
             System.out.println("content:\n" + content);
+        } else if (page.matchType(DETAIL_PAGE)) {
+            // 详情页
+            String id = page.meta("id");
+            TaobaoItem item = items.get(id);
+            if (item == null) {
+                return;
+            }
+            String desc = page.html(); // var desc='.....'
+            int start = desc.indexOf("'");
+            int end = desc.lastIndexOf("'");
+            desc = desc.substring(start+1,end);
+            item.setDetail(desc);
         }
+    }
+
+    /**
+     * 输出结果
+     */
+    public void outputResults() {
+        dao.writeHtmlPages(this.items.values(), OUTPUT_DIR);
     }
 
     public static void run() throws Exception {
@@ -103,10 +153,8 @@ public class TaobaoCrawler extends BreadthCrawler {
         //crawler.getConf().setTopN(100);
         //crawler.setResumable(true);
         /*start crawl with depth of 4*/
-
-        dao.open("taobao.txt");
         crawler.start(2);
-        dao.close();
+        crawler.outputResults();
     }
 
 }

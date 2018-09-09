@@ -4,17 +4,11 @@ import cn.edu.hfut.dmic.webcollector.model.CrawlDatum;
 import cn.edu.hfut.dmic.webcollector.model.CrawlDatums;
 import cn.edu.hfut.dmic.webcollector.model.Page;
 import cn.edu.hfut.dmic.webcollector.plugin.berkeley.BreadthCrawler;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import webcrab.dao.TaobaoItemFileDao;
 import webcrab.model.TaobaoItem;
+import webcrab.util.URLParser;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -68,7 +62,8 @@ public class TaobaoCrawler extends BreadthCrawler {
 
         /*if page is item page*/
         if (page.matchType(ITEM_PAGE)) {
-            String id = page.url().replace("https://item.taobao.com/item.htm?id=","");
+            String id = URLParser.fromURL(url).getParameter("id");
+            //String id = page.url().replace("https://item.taobao.com/item.htm?id=","");
             System.out.println("id="+id);
 
             // 宝贝一般信息

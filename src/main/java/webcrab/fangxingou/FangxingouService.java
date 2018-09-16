@@ -2,7 +2,6 @@ package webcrab.fangxingou;
 
 import cn.edu.hfut.dmic.webcollector.util.MD5Utils;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -35,9 +34,7 @@ public class FangxingouService {
     private final String API_BASE_URL = FangxingouConstants.OPEN_API_BASE_URL;
 
     public FangxingouService() {
-        Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd hh:mm:ss")
-                .create();
+        Gson gson = JsonUtils.createGson();
 
         retrofit = new Retrofit.Builder() //设置数据解析器
                 .addConverterFactory(GsonConverterFactory.create(gson)) //设置网络请求的Url地址
@@ -108,6 +105,14 @@ public class FangxingouService {
         return sign(APP_KEY, APP_SECRET, method, paramJson, timestamp, API_VERSION);
     }
 
+    /**
+     * 调用远程方法
+     *
+     * @param methodUrl
+     * @param paramObject
+     * @param <T>         传入的参数实体类型，会自动转换
+     * @return
+     */
     public <T> Response callRemoteMethod(String methodUrl, T paramObject) {
 
         String method = methodUrl.replace("/", ".");

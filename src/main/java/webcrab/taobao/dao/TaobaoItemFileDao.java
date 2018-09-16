@@ -1,13 +1,9 @@
-package webcrab.dao;
+package webcrab.taobao.dao;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import webcrab.model.TaobaoItem;
+import webcrab.taobao.model.TaobaoItem;
 
 import java.io.*;
 import java.util.Collection;
-import java.util.Map;
 
 public class TaobaoItemFileDao {
     private static final String TEMPLATE_FILENAME = "/template/taobao-item.html";

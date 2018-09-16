@@ -1,4 +1,4 @@
-package webcrab.model;
+package webcrab.taobao.model;
 
 public class TaobaoItem {
     //标题、价格、淘宝价、尺寸、分类、库存、宝贝详情、宝贝描述

@@ -1,12 +1,12 @@
-package webcrab;
+package webcrab.taobao;
 
 import cn.edu.hfut.dmic.webcollector.model.CrawlDatum;
 import cn.edu.hfut.dmic.webcollector.model.CrawlDatums;
 import cn.edu.hfut.dmic.webcollector.model.Page;
 import cn.edu.hfut.dmic.webcollector.plugin.berkeley.BreadthCrawler;
 import org.jsoup.select.Elements;
-import webcrab.dao.TaobaoItemFileDao;
-import webcrab.model.TaobaoItem;
+import webcrab.taobao.dao.TaobaoItemFileDao;
+import webcrab.taobao.model.TaobaoItem;
 import webcrab.util.URLParser;
 
 import java.text.MessageFormat;
@@ -104,11 +104,17 @@ public class TaobaoCrawler extends BreadthCrawler {
 
             //next.add("http://xxxxxx.com");
             //next为下次迭代
+
+            // 下次爬amp页，获取优惠价
             String ampUrl = MessageFormat.format( "https://www.taobao.com/list/item-amp/{0}.html",id);
-            next.add(ampUrl,AMP_PAGE);
+            CrawlDatum descDatum = new CrawlDatum();
+            descDatum.url(ampUrl);
+            descDatum.type(AMP_PAGE);
+            descDatum.meta("id", id);
+            next.add(descDatum);
 
             // 下次爬详情URL
-            CrawlDatum descDatum = new CrawlDatum();
+            descDatum = new CrawlDatum();
             descDatum.url(descHttpUri);
             descDatum.type(DETAIL_PAGE);
             descDatum.meta("id", id);
@@ -116,9 +122,18 @@ public class TaobaoCrawler extends BreadthCrawler {
             // 如果开启了autoParse, 则这里不用手动添加url到next, Crawler会根据设置的规则，自动提取page中的url加入next.
             // 在此基础上，也可以手动加入url,但是必须符合之前设置的规则，否则会被过滤。
         } else if (page.matchType(AMP_PAGE)) {
-            // lite page
-            String content = page.html();//page.select("div#artibody", 0).text();
-            System.out.println("content:\n" + content);
+            // lite page, 包含优惠价
+            //String content = page.html();//page.select("div#artibody", 0).text();
+            String pricePromote = page.selectText("div.price-contianer>div.price");
+            pricePromote = pricePromote.replace("¥", "");
+
+            String id = page.meta("id");
+            TaobaoItem item = items.get(id);
+            if (item == null) {
+                return;
+            }
+            System.out.println("content:\n" + pricePromote);
+            item.setPricePromote(Double.valueOf(pricePromote));
         } else if (page.matchType(DETAIL_PAGE)) {
             // 详情页
             String id = page.meta("id");

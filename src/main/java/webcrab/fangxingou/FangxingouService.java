@@ -7,8 +7,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import webcrab.fangxingou.module.ProductDetailQueryParam;
-import webcrab.fangxingou.module.ProductListQueryParam;
+import webcrab.fangxingou.module.po.*;
 import webcrab.util.JsonUtils;
 
 import java.io.IOException;
@@ -22,6 +21,12 @@ import java.util.Date;
  * 放心购服务
  */
 public class FangxingouService {
+
+    protected static FangxingouService instance;
+    static {
+        instance = new FangxingouService();
+    }
+
     private final Retrofit retrofit;
     private final FangxingouApi api;
     private final OkHttpClient okHttpClient;
@@ -33,7 +38,11 @@ public class FangxingouService {
     private final String API_VERSION = FangxingouConstants.API_VERSION;
     private final String API_BASE_URL = FangxingouConstants.OPEN_API_BASE_URL;
 
-    public FangxingouService() {
+    public static FangxingouService getInstance() {
+        return instance;
+    }
+
+    protected FangxingouService() {
         Gson gson = JsonUtils.createGson();
 
         retrofit = new Retrofit.Builder() //设置数据解析器
@@ -159,16 +168,69 @@ public class FangxingouService {
 //        });
     }
 
-    public void test() {
+    /**
+     * 查规格详情
+     */
+    public SpecAddResult specAdd(String specs, String name) {
+        String method = FangxingouApi.SPEC_ADD;
+        SpecAddParam param = new SpecAddParam();
+        param.setSpecs(specs);
+        param.setName(name);
+        Response resp = callRemoteMethod(method, param);
+        try {
+            String rstJson = resp.body().string();
+            System.out.println(rstJson);
+            SpecAddResult specAddResult = JsonUtils.fromJson(rstJson, SpecAddResult.class);
+            return specAddResult;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * 查规格详情
+     */
+    public void specDetail(String specId) {
+        String method = FangxingouApi.SPEC_SPECDETAIL;
+        SpecDetailQueryParam param = new SpecDetailQueryParam();
+        param.setId(specId);
+        Response resp = callRemoteMethod(method, param);
+        try {
+            System.out.println(resp.body().string());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    /**
+     * 查规格列表
+     */
+    public void specList() {
+        String method = FangxingouApi.SPEC_LIST;
+        Object param3 = new Object();
+        Response resp = callRemoteMethod(method, param3);
+        try {
+            System.out.println(resp.body().string());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 查产品列表
+     * @param page 第几页
+     * @param size 每页的个数
+     * @param status 0-上架  1-下架
+     */
+    public void productList(String page, String size, String status) {
         String method = null;
         Response resp = null;
-
         method = FangxingouApi.PRODUCT_LIST;
 
         ProductListQueryParam param = new ProductListQueryParam();
-        param.setPage("0");
-        param.setSize("10");
-        param.setStatus("0");
+        param.setPage(page);
+        param.setSize(size);
+        param.setStatus(status);
 
         resp = callRemoteMethod(method, param);
         try {
@@ -176,18 +238,36 @@ public class FangxingouService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        //-----------------------------------
-        method = FangxingouApi.PRODUCT_DETAIL;
+    }
+    /**
+     * 查产品详情
+     * @param productId
+     */
+    public void productDetail(String productId) {
+        String method = FangxingouApi.PRODUCT_DETAIL;
 
         ProductDetailQueryParam param2 = new ProductDetailQueryParam();
-        param2.setProduct_id("3300321774121703800");
-        resp = callRemoteMethod(method, param2);
+        param2.setProduct_id(productId);
+        Response resp = callRemoteMethod(method, param2);
         try {
             System.out.println(resp.body().string());
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void test() {
+        //productList("0", "10", "0");
+
+        //-----------------------------------
+        //productDetail("3300321774121703800");
+
+        //-----------------------------------
+        specList();
+
+        //specDetail("3067592");
+
+        specDetail("3070833");
     }
 
 

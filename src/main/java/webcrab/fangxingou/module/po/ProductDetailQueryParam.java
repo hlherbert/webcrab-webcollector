@@ -1,4 +1,4 @@
-package webcrab.fangxingou.module;
+package webcrab.fangxingou.module.po;
 
 public class ProductDetailQueryParam {
     private String product_id;// 商品id，和接入方的out_product_id二选一

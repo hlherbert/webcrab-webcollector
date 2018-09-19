@@ -4,12 +4,15 @@ import cn.edu.hfut.dmic.webcollector.model.CrawlDatum;
 import cn.edu.hfut.dmic.webcollector.model.CrawlDatums;
 import cn.edu.hfut.dmic.webcollector.model.Page;
 import cn.edu.hfut.dmic.webcollector.plugin.berkeley.BreadthCrawler;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import webcrab.taobao.dao.TaobaoItemFileDao;
 import webcrab.taobao.model.TaobaoItem;
 import webcrab.util.URLParser;
 
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -141,11 +144,19 @@ public class TaobaoCrawler extends BreadthCrawler {
             if (item == null) {
                 return;
             }
+
+            // 详情的html内容
             String desc = page.html(); // var desc='.....'
             int start = desc.indexOf("'");
             int end = desc.lastIndexOf("'");
             desc = desc.substring(start+1,end);
             item.setDetail(desc);
+
+            //　解析里面的img src=的内容
+            Document doc = Jsoup.parse(desc);
+            Elements imgEles = doc.select("img");
+            List<String> imgSrcs = imgEles.eachAttr("src");
+            item.setDetailImgs(imgSrcs);
         }
     }
 

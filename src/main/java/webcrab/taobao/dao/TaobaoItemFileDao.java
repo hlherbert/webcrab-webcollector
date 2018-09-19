@@ -52,6 +52,13 @@ public class TaobaoItemFileDao {
     public void writeHtmlPage(TaobaoItem item, String filename) {
         FileWriter fw = null;
         try {
+            // 拼接详情图片字符串
+            StringBuffer sb = new StringBuffer();
+            for (String img: item.getDetailImgs()) {
+                sb.append(img+",");
+            }
+            String detailImgs = sb.substring(0, sb.length()-1);
+
             String temp = this.htmlTemplate;
             String html = temp.replace("###taobaoUrl###", item.getTaobaoUrl())
                     .replace("###id###", item.getId())
@@ -60,7 +67,7 @@ public class TaobaoItemFileDao {
                     .replace("###pricePromote###", String.valueOf(item.getPricePromote()))
                     .replace("###stock###", String.valueOf(item.getStock()))
                     .replace("###basicInfo###", item.getBasicInfo())
-                    .replace("###detail###", item.getDetail());
+                    .replace("###detailImgs###", detailImgs);
 
             File outfile = new File(filename);
             fw = new FileWriter(outfile);

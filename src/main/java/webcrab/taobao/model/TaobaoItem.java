@@ -1,5 +1,7 @@
 package webcrab.taobao.model;
 
+import java.util.List;
+
 public class TaobaoItem {
     //标题、价格、淘宝价、尺寸、分类、库存、宝贝详情、宝贝描述
 
@@ -19,6 +21,9 @@ public class TaobaoItem {
     private String basicInfo;
     //详情
     private String detail;
+
+    //详情图片集
+    private List<String> detailImgs;
 
     public String getTaobaoUrl() {
         return taobaoUrl;
@@ -82,5 +87,13 @@ public class TaobaoItem {
 
     public void setDetail(String detail) {
         this.detail = detail;
+    }
+
+    public List<String> getDetailImgs() {
+        return detailImgs;
+    }
+
+    public void setDetailImgs(List<String> detailImgs) {
+        this.detailImgs = detailImgs;
     }
 }

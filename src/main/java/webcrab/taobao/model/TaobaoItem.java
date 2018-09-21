@@ -1,5 +1,6 @@
 package webcrab.taobao.model;
 
+import java.util.List;
 import java.util.Map;
 
 public class TaobaoItem {
@@ -23,6 +24,8 @@ public class TaobaoItem {
     private Map<String, String> basicInfoMap;
     //详情
     private String detail;
+    //详情图片集
+    private List<String> detailImgs;
 
     public String getTaobaoUrl() {
         return taobaoUrl;
@@ -94,5 +97,13 @@ public class TaobaoItem {
 
     public void setDetail(String detail) {
         this.detail = detail;
+    }
+
+    public List<String> getDetailImgs() {
+        return detailImgs;
+    }
+
+    public void setDetailImgs(List<String> detailImgs) {
+        this.detailImgs = detailImgs;
     }
 }

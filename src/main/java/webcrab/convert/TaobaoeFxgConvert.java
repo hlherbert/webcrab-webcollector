@@ -4,8 +4,18 @@ import webcrab.taobao.model.TaobaoItem;
 
 import java.util.Map;
 
+/**
+ * 淘宝转放心购
+ */
 public class TaobaoeFxgConvert {
 
+    /**
+     * 淘宝规格转放心狗
+     *
+     * @param taobaoItem 淘宝商品信息
+     * @return 放心购的商品信息格式 颜色|黑色,白色,黄色^尺码|S,M,L
+     * 多规格用^分隔，父规格与子规格用|分隔，子规格用,分隔
+     */
     public static String taobao2FxgSpecs(TaobaoItem taobaoItem) {
         Map<String, String> basicInfoMap = taobaoItem.getBasicInfoMap();
         if (basicInfoMap == null) {

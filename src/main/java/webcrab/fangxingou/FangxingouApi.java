@@ -21,6 +21,10 @@ public interface FangxingouApi {
     String SPEC_LIST = "spec/list";
 
     /**
+     * 获取商品分类
+     */
+    String PRODUCT_GET_GOODS_CATEGORY = "product/getGoodsCategory";
+    /**
      * 获取商品列表
      */
     String PRODUCT_LIST = "product/list";

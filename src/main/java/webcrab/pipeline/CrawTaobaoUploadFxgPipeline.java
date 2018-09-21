@@ -39,11 +39,12 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline{
     }
 
     /**
-     * 列出当前放心购SPEC列表
+     * 列出当前放心购当前商品信息
      */
-    private void stepFxgSpecList() {
-        fangxingouService.specList();
-        fangxingouService.specDetail("3240788");
+    private void stepGetFxgProducts() {
+        fangxingouService.specList(); //规格
+        fangxingouService.specDetail("3240788"); //规格详情
+        fangxingouService.productCategory("0");
     }
 
     /**
@@ -61,8 +62,8 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline{
 
     @Override
     public void doAllSteps() {
-        stepFxgSpecList();
-        stepCrawItemsAndSave();
+        stepGetFxgProducts();
+        //stepCrawItemsAndSave();
         //stepUploadToFxg();
     }
 }

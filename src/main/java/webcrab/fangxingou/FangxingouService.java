@@ -217,22 +217,36 @@ public class FangxingouService {
     }
 
     /**
+     * 查询商品分类
+     *
+     * @param cid 商品父分类id,根据父id可以获取子分类，一级分类cid=0,必填。
+     */
+    public void productCategory(String cid) {
+        String method = FangxingouApi.PRODUCT_GET_GOODS_CATEGORY;
+        ProductCategoryQueryParam param = new ProductCategoryQueryParam();
+        param.setCid(cid);
+
+        Response resp = callRemoteMethod(method, param);
+        try {
+            System.out.println(resp.body().string());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    /**
      * 查产品列表
      * @param page 第几页
      * @param size 每页的个数
      * @param status 0-上架  1-下架
      */
     public void productList(String page, String size, String status) {
-        String method = null;
-        Response resp = null;
-        method = FangxingouApi.PRODUCT_LIST;
-
+        String method = FangxingouApi.PRODUCT_LIST;
         ProductListQueryParam param = new ProductListQueryParam();
         param.setPage(page);
         param.setSize(size);
         param.setStatus(status);
 
-        resp = callRemoteMethod(method, param);
+        Response resp = callRemoteMethod(method, param);
         try {
             System.out.println(resp.body().string());
         } catch (IOException e) {

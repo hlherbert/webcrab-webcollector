@@ -1,6 +1,6 @@
 package webcrab.taobao.model;
 
-import java.util.List;
+import java.util.Map;
 
 public class TaobaoItem {
     //标题、价格、淘宝价、尺寸、分类、库存、宝贝详情、宝贝描述
@@ -19,11 +19,10 @@ public class TaobaoItem {
     private Integer stock;
     //基本信息(分类、尺寸等）
     private String basicInfo;
+    //基本信息表
+    private Map<String, String> basicInfoMap;
     //详情
     private String detail;
-
-    //详情图片集
-    private List<String> detailImgs;
 
     public String getTaobaoUrl() {
         return taobaoUrl;
@@ -81,19 +80,19 @@ public class TaobaoItem {
         this.basicInfo = basicInfo;
     }
 
+    public Map<String, String> getBasicInfoMap() {
+        return basicInfoMap;
+    }
+
+    public void setBasicInfoMap(Map<String, String> basicInfoMap) {
+        this.basicInfoMap = basicInfoMap;
+    }
+
     public String getDetail() {
         return detail;
     }
 
     public void setDetail(String detail) {
         this.detail = detail;
-    }
-
-    public List<String> getDetailImgs() {
-        return detailImgs;
-    }
-
-    public void setDetailImgs(List<String> detailImgs) {
-        this.detailImgs = detailImgs;
     }
 }

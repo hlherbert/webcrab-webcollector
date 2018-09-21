@@ -4,14 +4,14 @@ import cn.edu.hfut.dmic.webcollector.model.CrawlDatum;
 import cn.edu.hfut.dmic.webcollector.model.CrawlDatums;
 import cn.edu.hfut.dmic.webcollector.model.Page;
 import cn.edu.hfut.dmic.webcollector.plugin.berkeley.BreadthCrawler;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import webcrab.taobao.dao.TaobaoItemFileDao;
 import webcrab.taobao.model.TaobaoItem;
 import webcrab.util.URLParser;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -96,12 +96,20 @@ public class TaobaoCrawler extends BreadthCrawler {
             //taobaoItem.setPricePromote();
             taobaoItem.setStock(stock);
 
+            Map<String, String> basicInfoMap = new HashMap<>();
             // 基本信息
             StringBuffer buf = new StringBuffer();
             for (String basicInfo : basicInfoEles.eachText()) {
-                buf.append(basicInfo + "\n");
+                String[] keyValue = basicInfo.split(":",2);
+                if (keyValue != null) {
+                    buf.append(basicInfo + "\n");
+                    String key = keyValue[0].trim();
+                    String value = keyValue[1].trim();
+                    basicInfoMap.put(key, value);
+                }
             }
             taobaoItem.setBasicInfo(buf.toString());
+            taobaoItem.setBasicInfoMap(basicInfoMap);
             taobaoItem.setDetail(detail);
             items.put(id, taobaoItem);
 
@@ -144,19 +152,11 @@ public class TaobaoCrawler extends BreadthCrawler {
             if (item == null) {
                 return;
             }
-
-            // 详情的html内容
             String desc = page.html(); // var desc='.....'
             int start = desc.indexOf("'");
             int end = desc.lastIndexOf("'");
             desc = desc.substring(start+1,end);
             item.setDetail(desc);
-
-            //　解析里面的img src=的内容
-            Document doc = Jsoup.parse(desc);
-            Elements imgEles = doc.select("img");
-            List<String> imgSrcs = imgEles.eachAttr("src");
-            item.setDetailImgs(imgSrcs);
         }
     }
 
@@ -167,7 +167,13 @@ public class TaobaoCrawler extends BreadthCrawler {
         dao.writeHtmlPages(this.items.values(), OUTPUT_DIR);
     }
 
-    public static void run() throws Exception {
+    public List<TaobaoItem> getItemList() {
+        List<TaobaoItem> taobaoItemList = new ArrayList<>();
+        taobaoItemList.addAll(items.values());
+        return taobaoItemList;
+    }
+
+    public void run() throws Exception {
         TaobaoItemFileDao dao = new TaobaoItemFileDao();
         TaobaoCrawler crawler = new TaobaoCrawler("taobaoCraw", false, dao);
         crawler.setThreads(50);

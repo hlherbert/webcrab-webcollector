@@ -1,22 +1,22 @@
 package webcrab.fangxingou.module.po;
 
 public class ProductDetailQueryParam {
-    private String product_id;// 商品id，和接入方的out_product_id二选一
-    private String out_product_id;// 接入方商品ID(例如淘宝的商品id)
+    private String productId;// 商品id，和接入方的out_product_id二选一
+    private String outProductId;// 接入方商品ID(例如淘宝的商品id)
 
-    public String getProduct_id() {
-        return product_id;
+    public String getProductId() {
+        return productId;
     }
 
-    public void setProduct_id(String product_id) {
-        this.product_id = product_id;
+    public void setProductId(String productId) {
+        this.productId = productId;
     }
 
-    public String getOut_product_id() {
-        return out_product_id;
+    public String getOutProductId() {
+        return outProductId;
     }
 
-    public void setOut_product_id(String out_product_id) {
-        this.out_product_id = out_product_id;
+    public void setOutProductId(String outProductId) {
+        this.outProductId = outProductId;
     }
 }

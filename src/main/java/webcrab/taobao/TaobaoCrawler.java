@@ -115,6 +115,15 @@ public class TaobaoCrawler extends BreadthCrawler {
             taobaoItem.setDetail(detail);
             items.put(id, taobaoItem);
 
+            // 爬取滚动播放图片
+            Elements picEles = page.select("div.tb-pic>a>img");
+            List<String> pics = picEles.eachAttr("data-src");
+            for (int i = 0; i < pics.size(); i++) {
+                // 读取的是缩略图路径，去掉最后的_50x50.jpg就是原图
+                String pic = pics.get(i).replace("_50x50.jpg", "");
+                pics.set(i, pic);
+            }
+            taobaoItem.setPics(pics);
             //next.add("http://xxxxxx.com");
             //next为下次迭代
 

@@ -1,5 +1,7 @@
 package webcrab.fangxingou.module.po;
 
+import webcrab.util.JsonUtils;
+
 //返回结果
 public class Result<T> {
     protected T data; //数据
@@ -28,5 +30,10 @@ public class Result<T> {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    @Override
+    public String toString() {
+        return JsonUtils.toJson(this);
     }
 }

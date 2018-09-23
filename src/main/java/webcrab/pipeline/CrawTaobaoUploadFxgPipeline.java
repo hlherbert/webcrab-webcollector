@@ -2,11 +2,12 @@ package webcrab.pipeline;
 
 import webcrab.convert.TaobaoeFxgConvert;
 import webcrab.fangxingou.FangxingouService;
-import webcrab.fangxingou.module.po.SpecAddResult;
+import webcrab.fangxingou.module.Product;
 import webcrab.storage.ProductRepository;
 import webcrab.taobao.TaobaoCrawler;
 import webcrab.taobao.dao.TaobaoItemFileDao;
 import webcrab.taobao.model.TaobaoItem;
+import webcrab.util.JsonUtils;
 
 import java.util.List;
 
@@ -44,8 +45,8 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline{
     private void stepGetFxgProducts() {
         fangxingouService.specList(); //规格
         fangxingouService.specDetail("3240788"); //规格详情
-        fangxingouService.productCategoryTree();
-        //fangxingouService.productCategory("0");
+        //fangxingouService.productCategoryTree();
+        fangxingouService.productCategory("0");
     }
 
     /**
@@ -58,13 +59,26 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline{
         }
         TaobaoItem item = items.get(0);
         String specsUpload = TaobaoeFxgConvert.taobao2FxgSpecs(item);
-        SpecAddResult result = fangxingouService.specAdd(specsUpload, "AAA测试规格");
+
+        //SpecAddResult result = fangxingouService.specAdd(specsUpload, "AAA测试规格");
+        String outProductId = item.getId();
+
+        boolean isProductExist = fangxingouService.isProductExist(outProductId);
+        if (isProductExist) {
+            // 产品已经有了，就不上传了
+            return;
+        }
+
+        Product product = TaobaoeFxgConvert.taobao2FxgProduct(item);
+        //ProductAddParam productParam = new ProductAddParam();
+        //fangxingouService.productAdd(productParam);
+        System.out.println(JsonUtils.toJson(product));
     }
 
     @Override
     public void doAllSteps() {
-        stepGetFxgProducts();
-        //stepCrawItemsAndSave();
-        //stepUploadToFxg();
+        //stepGetFxgProducts();
+        stepCrawItemsAndSave();
+        stepUploadToFxg();
     }
 }

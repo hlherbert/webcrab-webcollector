@@ -24,6 +24,12 @@ public interface FangxingouApi {
      * 获取商品分类
      */
     String PRODUCT_GET_GOODS_CATEGORY = "product/getGoodsCategory";
+
+    /**
+     * 添加商品
+     */
+    String PRODUCT_ADD = "product/add";
+
     /**
      * 获取商品列表
      */

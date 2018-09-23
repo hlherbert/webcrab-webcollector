@@ -1,5 +1,7 @@
 package webcrab.datatype;
 
+import webcrab.util.JsonUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +35,7 @@ public class TreeNode<T> {
 
         for (int i = 0; i < f.children.size(); i++) {
             TreeNode<T> t = f.children.get(i);
-            System.out.println(preStr + "-" + t.value);
+            System.err.println(preStr + "-" + JsonUtils.toJson(t.value));
 
             if (!t.children.isEmpty()) {
                 printTree(t, level + 1);

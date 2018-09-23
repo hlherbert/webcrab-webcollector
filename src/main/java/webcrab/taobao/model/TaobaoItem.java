@@ -12,6 +12,10 @@ public class TaobaoItem {
     private String id;
     //标题
     private String title;
+
+    //商品轮播图
+    private List<String> pics;
+
     //原价
     private Double price;
     //优惠价(淘宝价)
@@ -22,6 +26,7 @@ public class TaobaoItem {
     private String basicInfo;
     //基本信息表
     private Map<String, String> basicInfoMap;
+
     //详情
     private String detail;
     //详情图片集
@@ -49,6 +54,14 @@ public class TaobaoItem {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public List<String> getPics() {
+        return pics;
+    }
+
+    public void setPics(List<String> pics) {
+        this.pics = pics;
     }
 
     public Double getPrice() {
@@ -106,4 +119,6 @@ public class TaobaoItem {
     public void setDetailImgs(List<String> detailImgs) {
         this.detailImgs = detailImgs;
     }
+
+
 }

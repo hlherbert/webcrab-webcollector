@@ -5,9 +5,6 @@ import com.google.gson.Gson;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
 import org.springframework.core.ParameterizedTypeReference;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -18,7 +15,6 @@ import webcrab.util.JsonUtils;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
@@ -42,10 +38,10 @@ public class FangxingouService {
 
     private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    private final String APP_KEY = FangxingouConstants.APP_KEY;
-    private final String APP_SECRET = FangxingouConstants.APP_SECRET;
-    private final String API_VERSION = FangxingouConstants.API_VERSION;
-    private final String API_BASE_URL = FangxingouConstants.OPEN_API_BASE_URL;
+    private final String APP_KEY = FangxingouAppConstant.APP_KEY;
+    private final String APP_SECRET = FangxingouAppConstant.APP_SECRET;
+    private final String API_VERSION = FangxingouAppConstant.API_VERSION;
+    private final String API_BASE_URL = FangxingouAppConstant.OPEN_API_BASE_URL;
 
     public static FangxingouService getInstance() {
         return instance;
@@ -91,7 +87,7 @@ public class FangxingouService {
 //
         String secretInfo = appSecret + info + appSecret;
 
-        System.out.println(secretInfo);
+        //System.out.println(secretInfo);
 //        e. 使用MD5进行加密得到sign, 传入url参数中
 //
         String md5 = "";
@@ -147,7 +143,7 @@ public class FangxingouService {
                 + "&" + "sign=" + sign;
 
         String uri = API_BASE_URL + "/" + methodUrl + "?" + urlParams;
-        System.out.println(uri);
+        //System.out.println(uri);
         final Request request = new Request.Builder().url(uri)
                 .get().build();
 
@@ -264,7 +260,8 @@ public class FangxingouService {
         String method = FangxingouApi.PRODUCT_GET_GOODS_CATEGORY;
         ProductCategoryQueryParam param = new ProductCategoryQueryParam();
         param.setCid(String.valueOf(category.getId()));
-        CategoryResult subCategories = callRemoteMethod(method, param, new ParameterizedTypeReference<List<Category>>(){}.getType());
+        CategoryResult subCategories = callRemoteMethod(method, param, new ParameterizedTypeReference<CategoryResult>() {
+        }.getType());
 
         List<TreeNode<Category>> children = node.getChildren();
         for (Category subCategory: subCategories.getData()) {
@@ -308,6 +305,18 @@ public class FangxingouService {
             e.printStackTrace();
         }
     }
+
+    /**
+     * 添加商品
+     *
+     * @param param 参数
+     */
+    public void productAdd(ProductAddParam param) {
+        String method = FangxingouApi.PRODUCT_ADD;
+        ProductAddResult rst = callRemoteMethod(method, param, ProductAddResult.class);
+        System.out.println(rst);
+    }
+
     /**
      * 查产品详情
      * @param productId
@@ -316,7 +325,7 @@ public class FangxingouService {
         String method = FangxingouApi.PRODUCT_DETAIL;
 
         ProductDetailQueryParam param2 = new ProductDetailQueryParam();
-        param2.setProduct_id(productId);
+        param2.setProductId(productId);
         Response resp = callRemoteMethod(method, param2);
         try {
             System.out.println(resp.body().string());
@@ -325,18 +334,43 @@ public class FangxingouService {
         }
     }
 
+    /**
+     * 查产品详情
+     *
+     * @param outProductId 商品外部编号
+     */
+    public boolean isProductExist(String outProductId) {
+        String method = FangxingouApi.PRODUCT_DETAIL;
+
+        ProductDetailQueryParam param2 = new ProductDetailQueryParam();
+        param2.setOutProductId(outProductId);
+        Response resp = callRemoteMethod(method, param2);
+        try {
+            String res = resp.body().string();
+            if (res.contains("record not found")) {
+                return false;
+            } else if (res.contains(outProductId)) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
     public void test() {
         //productList("0", "10", "0");
 
         //-----------------------------------
-        //productDetail("3300321774121703800");
+        productDetail("3300321774121703800");
+        //productDetail("330032177412170380");
 
         //-----------------------------------
         specList();
 
-        //specDetail("3067592");
+        specDetail("3067592");
 
-        specDetail("3070833");
+        //specDetail("3070833");
     }
 
 

@@ -5,11 +5,14 @@ import com.google.gson.Gson;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import webcrab.datatype.TreeNode;
 import webcrab.fangxingou.module.Category;
+import webcrab.fangxingou.module.Product;
 import webcrab.fangxingou.module.po.*;
 import webcrab.util.JsonUtils;
 
@@ -26,6 +29,7 @@ import java.util.List;
  * 放心购服务
  */
 public class FangxingouService {
+    private static Logger logger = LoggerFactory.getLogger(FangxingouService.class);
 
     protected static FangxingouService instance;
     static {
@@ -133,6 +137,8 @@ public class FangxingouService {
         Date now = new Date();
         String timestamp = dateFormat.format(now);
         String paramJson = JsonUtils.toJson(paramObject);
+        //原始参数内容中含有含有 + 号, 需要在正式请求时确保被替换成%2b, 否则被无法正常识别
+        paramJson = paramJson.replace("+", "%2b");
         String sign = sign(method, paramJson, timestamp);
 
         String urlParams = "app_key=" + APP_KEY
@@ -143,7 +149,7 @@ public class FangxingouService {
                 + "&" + "sign=" + sign;
 
         String uri = API_BASE_URL + "/" + methodUrl + "?" + urlParams;
-        //System.out.println(uri);
+        logger.info(uri);
         final Request request = new Request.Builder().url(uri)
                 .get().build();
 
@@ -194,44 +200,28 @@ public class FangxingouService {
         SpecAddParam param = new SpecAddParam();
         param.setSpecs(specs);
         param.setName(name);
-        Response resp = callRemoteMethod(method, param);
-        try {
-            String rstJson = resp.body().string();
-            System.out.println(rstJson);
-            SpecAddResult specAddResult = JsonUtils.fromJson(rstJson, SpecAddResult.class);
-            return specAddResult;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        SpecAddResult resp = callRemoteMethod(method, param, SpecAddResult.class);
+        return resp;
     }
 
     /**
      * 查规格详情
      */
-    public void specDetail(String specId) {
+    public SpecDetailResult specDetail(String specId) {
         String method = FangxingouApi.SPEC_SPECDETAIL;
         SpecDetailQueryParam param = new SpecDetailQueryParam();
         param.setId(specId);
-        Response resp = callRemoteMethod(method, param);
-        try {
-            System.out.println(resp.body().string());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        SpecDetailResult resp = callRemoteMethod(method, param, SpecDetailResult.class);
+        return resp;
     }
     /**
      * 查规格列表
      */
-    public void specList() {
+    public SpecListResult specList() {
         String method = FangxingouApi.SPEC_LIST;
         Object param3 = new Object();
-        Response resp = callRemoteMethod(method, param3);
-        try {
-            System.out.println(resp.body().string());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        SpecListResult resp = callRemoteMethod(method, param3, SpecListResult.class);
+        return resp;
     }
 
     /**
@@ -311,10 +301,11 @@ public class FangxingouService {
      *
      * @param param 参数
      */
-    public void productAdd(ProductAddParam param) {
+    public ProductAddResult productAdd(Product param) {
         String method = FangxingouApi.PRODUCT_ADD;
         ProductAddResult rst = callRemoteMethod(method, param, ProductAddResult.class);
-        System.out.println(rst);
+        logger.info(JsonUtils.toJson(rst));
+        return rst;
     }
 
     /**

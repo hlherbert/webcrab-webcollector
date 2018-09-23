@@ -6,9 +6,11 @@ import cn.edu.hfut.dmic.webcollector.model.Page;
 import cn.edu.hfut.dmic.webcollector.plugin.berkeley.BreadthCrawler;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import webcrab.taobao.dao.TaobaoItemFileDao;
 import webcrab.taobao.model.TaobaoItem;
+import webcrab.taobao.model.TaobaoSpec;
 import webcrab.util.URLParser;
 
 import java.text.MessageFormat;
@@ -73,7 +75,7 @@ public class TaobaoCrawler extends BreadthCrawler {
 
             // 宝贝一般信息
             String title = page.selectText("div#J_Title>h3");
-            Integer stock = page.selectInt("span#J_SpanStock");
+            Long stock = page.selectLong("span#J_SpanStock");
             Double price = page.selectDouble("strong#J_StrPrice>em.tb-rmb-num");
             Elements basicInfoEles = page.select("div#attributes>ul>li");
 
@@ -124,6 +126,43 @@ public class TaobaoCrawler extends BreadthCrawler {
                 pics.set(i, pic);
             }
             taobaoItem.setPics(pics);
+
+            // 爬取规格
+            Elements specEles = page.select("#J_isku ul.J_TSaleProp");
+            List<TaobaoSpec> taobaoSpecs = new ArrayList<>();
+            TaobaoSpec mainSpec = null;
+            for (Element ele : specEles) {
+                String specName = ele.attr("data-property");
+                TaobaoSpec tbSpec = new TaobaoSpec();
+                tbSpec.setName(specName);
+                Elements childSpecEles = ele.select("a");
+
+                //有图片的就是主规格
+                boolean isMainSpec = false;
+                if (ele.hasClass("tb-img")) {
+                    isMainSpec = true;
+                    mainSpec = tbSpec;
+                }
+
+                for (Element childEle : childSpecEles) {
+                    TaobaoSpec childSpec = new TaobaoSpec();
+                    String childName = childEle.selectFirst("span").text();
+                    childSpec.setName(childName);
+
+                    String style = childEle.attr("style");
+                    if (style != null && !style.isEmpty()) {
+                        int start = style.indexOf("url(//") + "url(//".length();
+                        int end = style.indexOf("_30x30.jpg)");
+                        String img = "https://" + style.substring(start, end);
+                        childSpec.setImg(img);
+                    }
+                    tbSpec.getChildSpecs().add(childSpec);
+                }
+                taobaoSpecs.add(tbSpec);
+            }
+            taobaoItem.setMainSpec(mainSpec);
+            taobaoItem.setSpecs(taobaoSpecs);
+
             //next.add("http://xxxxxx.com");
             //next为下次迭代
 

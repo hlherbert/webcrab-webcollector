@@ -2,12 +2,12 @@ package webcrab.convert;
 
 import org.springframework.stereotype.Component;
 import webcrab.conf.SellerProperties;
-import webcrab.fangxingou.module.CategoryEnum;
-import webcrab.fangxingou.module.PayTypeEnum;
-import webcrab.fangxingou.module.Product;
+import webcrab.fangxingou.module.*;
 import webcrab.taobao.model.TaobaoItem;
+import webcrab.taobao.model.TaobaoSpec;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,19 +27,28 @@ public class TaobaoeFxgConvert {
      * 多规格用^分隔，父规格与子规格用|分隔，子规格用,分隔
      */
     public static String taobao2FxgSpecs(TaobaoItem taobaoItem) {
-        Map<String, String> basicInfoMap = taobaoItem.getBasicInfoMap();
-        if (basicInfoMap == null) {
-            return null;
+        List<TaobaoSpec> specs = taobaoItem.getSpecs();
+        List<String> specStrs = new ArrayList<>();
+        for (TaobaoSpec spec : specs) {
+            List<TaobaoSpec> children = spec.getChildSpecs();
+            List<String> childrenSpecNames = new ArrayList<>();
+            for (TaobaoSpec child : children) {
+                childrenSpecNames.add(child.getName());
+            }
+            String specStr = spec.getName() + "|" + String.join(",", childrenSpecNames);
+            specStrs.add(specStr);
         }
-        StringBuffer specs = new StringBuffer();
-        for (Map.Entry<String,String> entry: basicInfoMap.entrySet()) {
-            String spec = entry.getKey()+"|"+entry.getValue().replace(" ",",");
-            specs.append(spec+"^");
-        }
-        return specs.substring(0,specs.length()-1); // 去掉最后的^
+        return String.join("^", specStrs);
     }
 
-    public static Product taobao2FxgProduct(TaobaoItem item) {
+    /**
+     * 淘宝商品转为放心购商品
+     *
+     * @param item  taobao商品
+     * @param specs 生成的放心购商品规格
+     * @return 放心购商品
+     */
+    public static Product taobao2FxgProduct(TaobaoItem item, Specs specs) {
         Product product = new Product();
         product.setName(item.getTitle());
 
@@ -60,10 +69,44 @@ public class TaobaoeFxgConvert {
 
         //TODO: 支付方式不确定，暂时只支持在线支付
         product.setPayType(PayTypeEnum.ONLINE.getStrVal());
+        product.setSpecId(String.valueOf(specs.getId()));
 
-//        product.setSpecId(specId);
-//        product.setSpecPic(specPic);
-//
+        //寻找specs中的主规格
+        TaobaoSpec taobaoMainSpec = item.getMainSpec();
+        String taobaoMainSpecName = taobaoMainSpec.getName();
+
+        List<Spec> childSpecs = specs.getSpecs();
+        Spec mainSpec = null;
+        for (Spec childSpec : childSpecs) {
+            // 比较规格名称是否和主规格一致
+            if (taobaoMainSpecName.equals(childSpec.getName())) {
+                mainSpec = childSpec;
+                break;
+            }
+        }
+
+        if (mainSpec != null) {
+            // 如果有主规格，则设置图片
+            List<TaobaoSpec> taobaoSubSpecs = taobaoMainSpec.getChildSpecs();
+            HashMap<String, TaobaoSpec> taobaoSubSpecMap = new HashMap<>();
+            for (TaobaoSpec taobaoSubSpec : taobaoSubSpecs) {
+                taobaoSubSpecMap.put(taobaoSubSpec.getName(), taobaoSubSpec);
+            }
+
+            List<Spec> subSpecs = mainSpec.getValues();//红 黄 蓝 等
+            List<String> specPicStrs = new ArrayList<>();
+            for (Spec subSpec : subSpecs) {
+                String subSpecName = subSpec.getName();
+                TaobaoSpec taobaoSubSpec = taobaoSubSpecMap.get(subSpecName);
+                String subSpecId = String.valueOf(subSpec.getId());
+                String subSpecImg = taobaoSubSpec.getImg();
+                String specPicStr = subSpecId + "|" + subSpecImg;
+                specPicStrs.add(specPicStr);
+            }
+            String specPic = String.join("^", specPicStrs);
+            product.setSpecPic(specPic);
+        }
+
         product.setMobile(sellerProperties.getMobile());
 
         //读取属性

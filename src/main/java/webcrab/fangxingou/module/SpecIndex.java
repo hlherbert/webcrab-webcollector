@@ -1,18 +1,17 @@
 package webcrab.fangxingou.module;
 
-import com.google.gson.annotations.SerializedName;
-
-import java.util.List;
-
 /**
- * 复合规格
+ * 规格索引
  */
-public class Specs {
+public class SpecIndex {
+    /**
+     * 规格ID
+     */
     private Long id;
+    /**
+     * 规格名称
+     */
     private String name;
-
-    @SerializedName("Specs")
-    private List<Spec> specs;
 
     public Long getId() {
         return id;
@@ -28,13 +27,5 @@ public class Specs {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public List<Spec> getSpecs() {
-        return specs;
-    }
-
-    public void setSpecs(List<Spec> specs) {
-        this.specs = specs;
     }
 }

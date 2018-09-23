@@ -20,8 +20,16 @@ public class TaobaoItem {
     private Double price;
     //优惠价(淘宝价)
     private Double pricePromote;
+
+    //主规格
+    private TaobaoSpec mainSpec;
+
+    //规格
+    private List<TaobaoSpec> specs;
+
+
     //库存
-    private Integer stock;
+    private Long stock;
     //基本信息(分类、尺寸等）
     private String basicInfo;
     //基本信息表
@@ -80,11 +88,11 @@ public class TaobaoItem {
         this.pricePromote = pricePromote;
     }
 
-    public Integer getStock() {
+    public Long getStock() {
         return stock;
     }
 
-    public void setStock(Integer stock) {
+    public void setStock(Long stock) {
         this.stock = stock;
     }
 
@@ -120,5 +128,19 @@ public class TaobaoItem {
         this.detailImgs = detailImgs;
     }
 
+    public TaobaoSpec getMainSpec() {
+        return mainSpec;
+    }
 
+    public void setMainSpec(TaobaoSpec mainSpec) {
+        this.mainSpec = mainSpec;
+    }
+
+    public List<TaobaoSpec> getSpecs() {
+        return specs;
+    }
+
+    public void setSpecs(List<TaobaoSpec> specs) {
+        this.specs = specs;
+    }
 }

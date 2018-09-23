@@ -44,7 +44,8 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline{
     private void stepGetFxgProducts() {
         fangxingouService.specList(); //规格
         fangxingouService.specDetail("3240788"); //规格详情
-        fangxingouService.productCategory("0");
+        fangxingouService.productCategoryTree();
+        //fangxingouService.productCategory("0");
     }
 
     /**

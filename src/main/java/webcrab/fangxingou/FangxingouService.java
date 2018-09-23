@@ -5,17 +5,26 @@ import com.google.gson.Gson;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.springframework.core.ParameterizedTypeReference;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import webcrab.datatype.TreeNode;
+import webcrab.fangxingou.module.Category;
 import webcrab.fangxingou.module.po.*;
 import webcrab.util.JsonUtils;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 放心购服务
@@ -168,6 +177,19 @@ public class FangxingouService {
 //        });
     }
 
+    public <T,R> R callRemoteMethod(String methodUrl, T paramObject, Type resultType) {
+        Response resp = callRemoteMethod(methodUrl,paramObject);
+        if (resp == null) {
+            return null;
+        }
+        try {
+            String rstJson = resp.body().string();
+            return JsonUtils.fromJson(rstJson, resultType);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
     /**
      * 查规格详情
      */
@@ -228,11 +250,44 @@ public class FangxingouService {
 
         Response resp = callRemoteMethod(method, param);
         try {
-            System.out.println(resp.body().string());
+            String s = resp.body().string();
+            System.out.println(s);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+
+    private void buildCategoryTree(TreeNode<Category> node, Category category) {
+        node.setValue(category);
+
+        String method = FangxingouApi.PRODUCT_GET_GOODS_CATEGORY;
+        ProductCategoryQueryParam param = new ProductCategoryQueryParam();
+        param.setCid(String.valueOf(category.getId()));
+        CategoryResult subCategories = callRemoteMethod(method, param, new ParameterizedTypeReference<List<Category>>(){}.getType());
+
+        List<TreeNode<Category>> children = node.getChildren();
+        for (Category subCategory: subCategories.getData()) {
+            TreeNode<Category> subNode = new TreeNode<>();
+            children.add(subNode);
+            buildCategoryTree(subNode, subCategory);
+        }
+    }
+
+    /**
+     * 获取产品类型树
+     */
+    public void productCategoryTree() {
+        Category rootCategory = new Category();
+        rootCategory.setId(0L);
+        rootCategory.setName("rootCategory");
+
+        TreeNode<Category> categoryTree = new TreeNode<>();
+        buildCategoryTree(categoryTree, rootCategory);
+
+        TreeNode.printTree(categoryTree, 0);
+    }
+
     /**
      * 查产品列表
      * @param page 第几页

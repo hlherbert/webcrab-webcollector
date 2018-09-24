@@ -7,7 +7,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.ParameterizedTypeReference;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import webcrab.datatype.TreeNode;
@@ -138,7 +137,7 @@ public class FangxingouService {
         String timestamp = dateFormat.format(now);
         String paramJson = JsonUtils.toJson(paramObject);
         //原始参数内容中含有含有 + 号, 需要在正式请求时确保被替换成%2b, 否则被无法正常识别
-        paramJson = paramJson.replace("+", "%2b");
+        //paramJson = paramJson.replace("+", "%2b");
         String sign = sign(method, paramJson, timestamp);
 
         String urlParams = "app_key=" + APP_KEY
@@ -149,7 +148,6 @@ public class FangxingouService {
                 + "&" + "sign=" + sign;
 
         String uri = API_BASE_URL + "/" + methodUrl + "?" + urlParams;
-        logger.info(uri);
         final Request request = new Request.Builder().url(uri)
                 .get().build();
 
@@ -250,8 +248,7 @@ public class FangxingouService {
         String method = FangxingouApi.PRODUCT_GET_GOODS_CATEGORY;
         ProductCategoryQueryParam param = new ProductCategoryQueryParam();
         param.setCid(String.valueOf(category.getId()));
-        CategoryResult subCategories = callRemoteMethod(method, param, new ParameterizedTypeReference<CategoryResult>() {
-        }.getType());
+        CategoryResult subCategories = callRemoteMethod(method, param, CategoryResult.class);
 
         List<TreeNode<Category>> children = node.getChildren();
         for (Category subCategory: subCategories.getData()) {

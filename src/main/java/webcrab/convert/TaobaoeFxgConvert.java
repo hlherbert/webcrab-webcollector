@@ -1,6 +1,5 @@
 package webcrab.convert;
 
-import org.springframework.stereotype.Component;
 import webcrab.conf.SellerProperties;
 import webcrab.fangxingou.module.*;
 import webcrab.taobao.model.TaobaoItem;
@@ -14,7 +13,6 @@ import java.util.Map;
 /**
  * 淘宝转放心购
  */
-@Component
 public class TaobaoeFxgConvert {
 
     private static SellerProperties sellerProperties = SellerProperties.getInstance();

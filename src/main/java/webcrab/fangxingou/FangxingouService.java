@@ -2,6 +2,7 @@ package webcrab.fangxingou;
 
 import cn.edu.hfut.dmic.webcollector.util.MD5Utils;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -21,8 +22,7 @@ import java.lang.reflect.Type;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * 放心购服务
@@ -123,6 +123,27 @@ public class FangxingouService {
     }
 
     /**
+     * paramJson里面的数据需要按照key排序
+     *
+     * @param paramJson 参数json，未排序
+     * @return paramJson里字段按照key排序
+     */
+    private String sortJsonParam(String paramJson) {
+        Map<String, Object> paramMap = JsonUtils.fromJson(paramJson, new TypeToken<Map<String, String>>() {
+        }.getType());
+        Set<String> paramKeys = paramMap.keySet();
+        List<String> keyList = new ArrayList<>();
+        keyList.addAll(paramKeys);
+        Collections.sort(keyList);
+        Map<String, Object> paramMapOrdered = new LinkedHashMap<>();
+        for (String key : keyList) {
+            paramMapOrdered.put(key, paramMap.get(key));
+        }
+        paramJson = JsonUtils.toJson(paramMapOrdered);
+        return paramJson;
+    }
+
+    /**
      * 调用远程方法
      *
      * @param methodUrl
@@ -136,8 +157,13 @@ public class FangxingouService {
         Date now = new Date();
         String timestamp = dateFormat.format(now);
         String paramJson = JsonUtils.toJson(paramObject);
+
+        //　paramJson里面的数据需要按照key排序
+        paramJson = sortJsonParam(paramJson);
+
         //原始参数内容中含有含有 + 号, 需要在正式请求时确保被替换成%2b, 否则被无法正常识别
         //paramJson = paramJson.replace("+", "%2b");
+
         String sign = sign(method, paramJson, timestamp);
 
         String urlParams = "app_key=" + APP_KEY
@@ -148,6 +174,7 @@ public class FangxingouService {
                 + "&" + "sign=" + sign;
 
         String uri = API_BASE_URL + "/" + methodUrl + "?" + urlParams;
+        logger.info(uri);
         final Request request = new Request.Builder().url(uri)
                 .get().build();
 
@@ -158,23 +185,6 @@ public class FangxingouService {
             e.printStackTrace();
         }
         return null;
-//        Call call = okHttpClient.newCall(request);
-//
-//        call.enqueue(new Callback() {
-//            @Override
-//            public void onFailure(Call call, IOException e) {
-//                e.printStackTrace();
-//            }
-//
-//            @Override
-//            public void onResponse(Call call, Response response) {
-//                try {
-//                    System.out.println(response.body().string());
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
     }
 
     public <T,R> R callRemoteMethod(String methodUrl, T paramObject, Type resultType) {

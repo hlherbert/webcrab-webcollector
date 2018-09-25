@@ -15,6 +15,14 @@ import java.util.Map;
  */
 public class TaobaoeFxgConvert {
 
+    /**
+     * 商品轮播图数量限制
+     */
+    private static final int PRODUCT_PIC_LIMIT = 5;
+
+    /**
+     * 卖家信息配置
+     */
     private static SellerProperties sellerProperties = SellerProperties.getInstance();
 
     /**
@@ -50,7 +58,9 @@ public class TaobaoeFxgConvert {
         Product product = new Product();
         product.setName(item.getTitle());
 
-        String pics = String.join("|", item.getPics());
+        // 最多5张
+        List<String> picsLimit = item.getPics().subList(0, PRODUCT_PIC_LIMIT);
+        String pics = String.join("|", picsLimit);
         String descImgs = String.join("|", item.getDetailImgs());
 
         product.setPic(pics);

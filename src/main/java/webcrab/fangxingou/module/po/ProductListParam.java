@@ -1,6 +1,6 @@
 package webcrab.fangxingou.module.po;
 
-public class ProductListQueryParam {
+public class ProductListParam {
     private String page = "0";// 从0开始
     private String size = "10";// 每页条数
     private String status = "0"; //0-上架，1-下架

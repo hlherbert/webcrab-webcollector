@@ -218,7 +218,7 @@ public class FangxingouService {
      */
     public SpecDetailResult specDetail(String specId) {
         String method = FangxingouApi.SPEC_SPECDETAIL;
-        SpecDetailQueryParam param = new SpecDetailQueryParam();
+        SpecDetailParam param = new SpecDetailParam();
         param.setId(specId);
         SpecDetailResult resp = callRemoteMethod(method, param, SpecDetailResult.class);
         return resp;
@@ -240,7 +240,7 @@ public class FangxingouService {
      */
     public void productCategory(String cid) {
         String method = FangxingouApi.PRODUCT_GET_GOODS_CATEGORY;
-        ProductCategoryQueryParam param = new ProductCategoryQueryParam();
+        ProductCategoryParam param = new ProductCategoryParam();
         param.setCid(cid);
 
         Response resp = callRemoteMethod(method, param);
@@ -257,7 +257,7 @@ public class FangxingouService {
         node.setValue(category);
 
         String method = FangxingouApi.PRODUCT_GET_GOODS_CATEGORY;
-        ProductCategoryQueryParam param = new ProductCategoryQueryParam();
+        ProductCategoryParam param = new ProductCategoryParam();
         param.setCid(String.valueOf(category.getId()));
         CategoryResult subCategories = callRemoteMethod(method, param, CategoryResult.class);
 
@@ -291,7 +291,7 @@ public class FangxingouService {
      */
     public void productList(String page, String size, String status) {
         String method = FangxingouApi.PRODUCT_LIST;
-        ProductListQueryParam param = new ProductListQueryParam();
+        ProductListParam param = new ProductListParam();
         param.setPage(page);
         param.setSize(size);
         param.setStatus(status);
@@ -318,13 +318,13 @@ public class FangxingouService {
 
     /**
      * 查产品详情
-     * @param productId
+     * @param outProductId 外部ID，例如淘宝ID
      */
-    public void productDetail(String productId) {
+    public void productDetail(String outProductId) {
         String method = FangxingouApi.PRODUCT_DETAIL;
 
-        ProductDetailQueryParam param2 = new ProductDetailQueryParam();
-        param2.setProductId(productId);
+        ProductDetailParam param2 = new ProductDetailParam();
+        param2.setOutProductId(outProductId);
         Response resp = callRemoteMethod(method, param2);
         try {
             System.out.println(resp.body().string());
@@ -341,7 +341,7 @@ public class FangxingouService {
     public boolean isProductExist(String outProductId) {
         String method = FangxingouApi.PRODUCT_DETAIL;
 
-        ProductDetailQueryParam param2 = new ProductDetailQueryParam();
+        ProductDetailParam param2 = new ProductDetailParam();
         param2.setOutProductId(outProductId);
         Response resp = callRemoteMethod(method, param2);
         try {
@@ -355,6 +355,22 @@ public class FangxingouService {
             e.printStackTrace();
         }
         return true;
+    }
+
+    /**
+     * sku列表
+     */
+    public void skuList(String outProductId) {
+        String method = FangxingouApi.SKU_LIST;
+
+        SkuListParam param = new SkuListParam();
+        param.setOutProductId(outProductId);
+        Response resp = callRemoteMethod(method, param);
+        try {
+            System.out.println(resp.body().string());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void test() {

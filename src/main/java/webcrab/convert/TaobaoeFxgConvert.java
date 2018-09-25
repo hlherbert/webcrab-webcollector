@@ -18,7 +18,7 @@ public class TaobaoeFxgConvert {
     /**
      * 商品轮播图数量限制
      */
-    private static final int PRODUCT_PIC_LIMIT = 5;
+    private static final int PRODUCT_PIC_LIMIT = ProductConstant.PRODUCT_PIC_LIMIT;
 
     /**
      * 卖家信息配置
@@ -26,7 +26,7 @@ public class TaobaoeFxgConvert {
     private static SellerProperties sellerProperties = SellerProperties.getInstance();
 
     /**
-     * 淘宝规格转放心狗
+     * 淘宝规格转放心购
      *
      * @param taobaoItem 淘宝商品信息
      * @return 放心购的商品信息格式 颜色|黑色,白色,黄色^尺码|S,M,L

@@ -1,6 +1,6 @@
 package webcrab.fangxingou.module.po;
 
-public class SpecDetailQueryParam {
+public class SpecDetailParam {
     private String id;//规格id (spec_id)
 
     public String getId() {

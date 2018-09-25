@@ -4,6 +4,7 @@ package webcrab.fangxingou.module;
  * 商品
  */
 public class Product {
+
     //name	string	是	xxx补水液	商品名称
     private String name;
 

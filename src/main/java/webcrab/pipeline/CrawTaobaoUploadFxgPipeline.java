@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import webcrab.convert.TaobaoeFxgConvert;
 import webcrab.fangxingou.FangxingouService;
 import webcrab.fangxingou.module.Product;
+import webcrab.fangxingou.module.SpecConstant;
 import webcrab.fangxingou.module.Specs;
 import webcrab.fangxingou.module.po.SpecAddResult;
 import webcrab.fangxingou.module.po.SpecListResult;
@@ -25,7 +26,7 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
     /**
      * 上次规格时，规格名前缀
      */
-    private static final String TB_SPEC_PREFIX = "TEST_TB_SPEC_";
+    private static final String SPEC_PREFIX = SpecConstant.FXG_SPEC_NAME_PREFIX;
     private static Logger logger = LoggerFactory.getLogger(CrawTaobaoUploadFxgPipeline.class);
     private TaobaoCrawler taobaoCrawler;
     private ProductRepository productRepository = ProductRepository.getInstance();
@@ -39,7 +40,7 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
      * @return {PREFIX}_{outProductId}_{nRetry}
      */
     private static String makeSpecName(String outProductId, int nRetry) {
-        return TB_SPEC_PREFIX + outProductId + "_" + nRetry;
+        return SPEC_PREFIX + outProductId + "_" + nRetry;
     }
 
     /**
@@ -75,7 +76,11 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
         //fangxingouService.productCategory("0");
 
         //详细商品
-        fangxingouService.productDetail("3302543237079816361");
+        String outProductId = "574378898908";
+        fangxingouService.productDetail(outProductId);
+
+        //SKU
+        fangxingouService.skuList(outProductId);
     }
 
     /**

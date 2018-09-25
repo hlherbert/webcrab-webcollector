@@ -56,6 +56,11 @@ public class ProductRepository {
     }
 
     public void setSpecIndexList(List<SpecIndex> specIndexList) {
+        if (specIndexList == null) {
+            this.specIndexList.clear();
+            return;
+        }
+
         this.specIndexList = specIndexList;
         for (SpecIndex specIndex : specIndexList) {
             specIndexMap.put(specIndex.getName(), specIndex);

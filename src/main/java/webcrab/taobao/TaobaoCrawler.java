@@ -120,6 +120,7 @@ public class TaobaoCrawler extends BreadthCrawler {
             // 爬取滚动播放图片
             Elements picEles = page.select("div.tb-pic>a>img");
             List<String> pics = picEles.eachAttr("data-src");
+            pics.removeIf(s -> !s.endsWith(".jpg"));
             for (int i = 0; i < pics.size(); i++) {
                 // 读取的是缩略图路径，去掉最后的_50x50.jpg就是原图
                 String pic = pics.get(i).replace("_50x50.jpg", "");
@@ -214,6 +215,8 @@ public class TaobaoCrawler extends BreadthCrawler {
             Document doc = Jsoup.parse(desc);
             Elements imgEles = doc.select("img");
             List<String> imgSrcs = imgEles.eachAttr("src");
+            //移除不是以jpg结尾的图片,否则格式有?等，会导致上传失败
+            imgSrcs.removeIf(s -> !s.endsWith(".jpg"));
             item.setDetailImgs(imgSrcs);
         }
     }

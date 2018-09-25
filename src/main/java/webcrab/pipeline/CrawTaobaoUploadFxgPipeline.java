@@ -73,6 +73,9 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
         //fangxingouService.specDetail("3240788"); //规格详情
         //fangxingouService.productCategoryTree();
         //fangxingouService.productCategory("0");
+
+        //详细商品
+        fangxingouService.productDetail("3302543237079816361");
     }
 
     /**
@@ -119,7 +122,7 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
     @Override
     public void doAllSteps() {
         stepGetFxgProducts();
-        stepCrawItemsAndSave();
-        stepUploadToFxg();
+        //stepCrawItemsAndSave();
+        //stepUploadToFxg();
     }
 }

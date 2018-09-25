@@ -2,10 +2,20 @@
 
 # openapi
 http://openapidoc.jinritemai.com
+
 appkey:
 3300835641834754583
+
 appsecret:
-345414f069634c2f13958b44674eaee85
+345414f069634c2f13958b44674eae85
+
+appkey2:
+3302535461041517558
+
+appsecret2:
+90acb4e8398d3a18c028de54bd827a3e
+
+
 
 # 服务器返回错误码列表
 字段名 	释义

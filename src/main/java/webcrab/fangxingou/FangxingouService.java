@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import webcrab.conf.SellerProperties;
 import webcrab.datatype.TreeNode;
 import webcrab.fangxingou.module.Category;
 import webcrab.fangxingou.module.Product;
@@ -40,9 +41,9 @@ public class FangxingouService {
     private final OkHttpClient okHttpClient;
 
     private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-    private final String APP_KEY = FangxingouAppConstant.APP_KEY;
-    private final String APP_SECRET = FangxingouAppConstant.APP_SECRET;
+    private final SellerProperties sellerProperties = SellerProperties.getInstance();
+    private final String APP_KEY = sellerProperties.getAppkey();
+    private final String APP_SECRET = sellerProperties.getAppsecret();
     private final String API_VERSION = FangxingouAppConstant.API_VERSION;
     private final String API_BASE_URL = FangxingouAppConstant.OPEN_API_BASE_URL;
 

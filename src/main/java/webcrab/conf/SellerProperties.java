@@ -8,6 +8,8 @@ import java.util.Properties;
  * 卖家属性，从配置文件seller.properties中读取
  */
 public class SellerProperties {
+    private String appkey;
+    private String appsecret;
     private String mobile;
     private String recommendRemark;
     private String extra;
@@ -18,6 +20,8 @@ public class SellerProperties {
         SellerProperties sellerProperties = new SellerProperties();
         try {
             props.load(in);
+            sellerProperties.appkey = props.getProperty("appkey");
+            sellerProperties.appsecret = props.getProperty("appsecret");
             sellerProperties.mobile = props.getProperty("mobile");
             sellerProperties.recommendRemark = props.getProperty("recommendRemark");
             sellerProperties.extra = props.getProperty("extra");
@@ -29,6 +33,22 @@ public class SellerProperties {
 
     protected SellerProperties() {
 
+    }
+
+    public String getAppkey() {
+        return appkey;
+    }
+
+    public void setAppkey(String appkey) {
+        this.appkey = appkey;
+    }
+
+    public String getAppsecret() {
+        return appsecret;
+    }
+
+    public void setAppsecret(String appsecret) {
+        this.appsecret = appsecret;
     }
 
     public String getMobile() {

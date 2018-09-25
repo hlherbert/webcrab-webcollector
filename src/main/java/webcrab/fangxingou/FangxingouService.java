@@ -165,6 +165,13 @@ public class FangxingouService {
         //原始参数内容中含有含有 + 号, 需要在正式请求时确保被替换成%2b, 否则被无法正常识别
         //paramJson = paramJson.replace("+", "%2b");
 
+        //转码
+//        try {
+//            paramJson= URLEncoder.encode(paramJson,"UTF-8");
+//        } catch (UnsupportedEncodingException e) {
+//            logger.error("url encoding fail.",e);
+//        }
+
         String sign = sign(method, paramJson, timestamp);
 
         String urlParams = "app_key=" + APP_KEY

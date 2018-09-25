@@ -81,13 +81,8 @@ public class TaobaoCrawler extends BreadthCrawler {
             Long stock = page.selectLong("span#J_SpanStock");
 
             //TODO: 价格可能是 4130 - 8133的形式，先暂不处理
-            Double price = null;
-            try {
-                page.selectDouble("strong#J_StrPrice>em.tb-rmb-num");
-            } catch (Exception e) {
-                logger.error("parse price fail.", e);
-                price = null;
-            }
+            String strPrice = page.selectText("strong#J_StrPrice>em.tb-rmb-num");
+            Double price = parsePrice(strPrice);
 
             Elements basicInfoEles = page.select("div#attributes>ul>li");
 
@@ -136,6 +131,7 @@ public class TaobaoCrawler extends BreadthCrawler {
             for (int i = 0; i < pics.size(); i++) {
                 // 读取的是缩略图路径，去掉最后的_50x50.jpg就是原图
                 String pic = pics.get(i).replace("_50x50.jpg", "");
+                pic = processImgUrl(pic);
                 pics.set(i, pic);
             }
             taobaoItem.setPics(pics);
@@ -166,7 +162,8 @@ public class TaobaoCrawler extends BreadthCrawler {
                     if (style != null && !style.isEmpty()) {
                         int start = style.indexOf("url(//") + "url(//".length();
                         int end = style.indexOf("_30x30.jpg)");
-                        String img = "https://" + style.substring(start, end);
+                        String specPic = style.substring(start, end);
+                        String img = processImgUrl(specPic);
                         childSpec.setImg(img);
                     }
                     tbSpec.getChildSpecs().add(childSpec);
@@ -208,13 +205,9 @@ public class TaobaoCrawler extends BreadthCrawler {
             }
             System.out.println("content:\n" + pricePromote);
 
-            //TODO: 价格可能是 4130 - 8133的形式，先暂不处理
-            try {
-                item.setPricePromote(Double.valueOf(pricePromote));
-            } catch (Exception e) {
-                logger.error("parse price promote fail", e);
-            }
-
+            //TODO: 价格可能是 4130 - 8133的形式，取第一个值即低值
+            Double dPricePromote = parsePrice(pricePromote);
+            item.setPricePromote(dPricePromote);
         } else if (page.matchType(DETAIL_PAGE)) {
             // 详情页
             String id = page.meta("id");
@@ -236,8 +229,54 @@ public class TaobaoCrawler extends BreadthCrawler {
             List<String> imgSrcs = imgEles.eachAttr("src");
             //移除不是以jpg结尾的图片,否则格式有?等，会导致上传失败
             imgSrcs.removeIf(s -> !s.endsWith(".jpg"));
+            for (int i = 0; i < imgSrcs.size(); i++) {
+                imgSrcs.set(i, processImgUrl(imgSrcs.get(i)));
+            }
             item.setDetailImgs(imgSrcs);
         }
+    }
+
+    /**
+     * 解析价格
+     *
+     * @param strPrice 价格字符串，可能是123，也可能是123 - 456
+     * @return 价格（元），取价格字符串中的最低值（第一个值）
+     */
+    private Double parsePrice(String strPrice) {
+        Double price = null;
+        // a - b形式
+        if (strPrice.matches(".*-.*")) {
+            String[] prices = strPrice.split("-", 2);
+            if (prices != null && prices.length >= 1) {
+                strPrice = prices[0].trim();
+            }
+        }
+
+        try {
+            price = Double.valueOf(strPrice.trim());
+        } catch (Exception e) {
+            logger.error("parse price fail.", e);
+            price = null;
+        }
+        return price;
+    }
+
+    /**
+     * 处理图片URL
+     *
+     * @param imgUrl 原url,可能为a.jpg, //a.jpg, http://a.jpg
+     * @return 如果不是http://a.jpg, 一律改为https://a.jpg
+     */
+    private String processImgUrl(String imgUrl) {
+        String img;
+        if (imgUrl.startsWith("https://") || imgUrl.startsWith("http://")) {
+            img = imgUrl;
+        } else if (imgUrl.startsWith("//")) {
+            img = imgUrl.replaceFirst("//", "https://");
+        } else {
+            img = "https://" + imgUrl;
+        }
+        return img;
     }
 
     /**

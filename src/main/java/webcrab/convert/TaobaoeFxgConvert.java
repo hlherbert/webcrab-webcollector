@@ -113,11 +113,19 @@ public class TaobaoeFxgConvert {
                 TaobaoSpec taobaoSubSpec = taobaoSubSpecMap.get(subSpecName);
                 String subSpecId = String.valueOf(subSpec.getId());
                 String subSpecImg = taobaoSubSpec.getImg();
+
+                // 有可能朱规格没有图片
+                if (subSpecImg == null) {
+                    continue;
+                }
+
                 String specPicStr = subSpecId + "|" + subSpecImg;
                 specPicStrs.add(specPicStr);
             }
-            String specPic = String.join("^", specPicStrs);
-            product.setSpecPic(specPic);
+            if (specPicStrs != null && !specPicStrs.isEmpty()) {
+                String specPic = String.join("^", specPicStrs);
+                product.setSpecPic(specPic);
+            }
         }
 
         product.setMobile(sellerProperties.getMobile());

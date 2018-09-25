@@ -66,8 +66,13 @@ public class TaobaoeFxgConvert {
         product.setPic(pics);
         product.setDescription(descImgs);
         product.setOutProductId(item.getId());
-        product.setMarketPrice(String.valueOf((long) (item.getPrice() * 100))); //rmb --> fen
-        product.setDiscountPrice(String.valueOf((long) (item.getPricePromote() * 100)));
+
+        if (item.getPrice() != null) {
+            product.setMarketPrice(String.valueOf((long) (item.getPrice() * 100))); //rmb --> fen
+        }
+        if (item.getPricePromote() != null) {
+            product.setDiscountPrice(String.valueOf((long) (item.getPricePromote() * 100)));
+        }
         product.setCosRatio("0"); //佣金率 TODO:不知道佣金怎么填,先填0
 
         //TODO: 现在不知道原商品分类，设置为其他

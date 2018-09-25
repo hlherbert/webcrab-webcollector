@@ -1,0 +1,3 @@
+# 淘宝商品的URL，爬虫爬的种子网站
+https://item.taobao.com/item.htm?id=574378898908
+https://item.taobao.com/item.htm?id=566374531994

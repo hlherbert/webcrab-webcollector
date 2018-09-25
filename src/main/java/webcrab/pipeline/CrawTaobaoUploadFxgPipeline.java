@@ -127,7 +127,7 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
     @Override
     public void doAllSteps() {
         stepGetFxgProducts();
-        //stepCrawItemsAndSave();
-        //stepUploadToFxg();
+        stepCrawItemsAndSave();
+        stepUploadToFxg();
     }
 }

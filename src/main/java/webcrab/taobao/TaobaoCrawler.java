@@ -8,6 +8,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import webcrab.taobao.dao.TaobaoItemFileDao;
 import webcrab.taobao.model.TaobaoItem;
 import webcrab.taobao.model.TaobaoSpec;
@@ -29,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author hu
  */
 public class TaobaoCrawler extends BreadthCrawler {
+    private static final Logger logger = LoggerFactory.getLogger(TaobaoCrawler.class);
     private static final String OUTPUT_DIR = "out";
     private static final String ITEM_PAGE="ITEM";//商品首页
     private static final String DETAIL_PAGE="DETAIL";//详情页
@@ -49,7 +52,7 @@ public class TaobaoCrawler extends BreadthCrawler {
 
         this.dao = dao;
         /*start page*/
-        this.addSeed("https://item.taobao.com/item.htm?id=574378898908", ITEM_PAGE);
+        this.addSeed("https://item.taobao.com/item.htm?id=566374531994", ITEM_PAGE);
 
         /*fetch url like http://news.hfut.edu.cn/show-xxxxxxhtml*/
         //this.addRegex("https://www.taobao.com/list/item-amp/.*htm");
@@ -76,7 +79,16 @@ public class TaobaoCrawler extends BreadthCrawler {
             // 宝贝一般信息
             String title = page.selectText("div#J_Title>h3");
             Long stock = page.selectLong("span#J_SpanStock");
-            Double price = page.selectDouble("strong#J_StrPrice>em.tb-rmb-num");
+
+            //TODO: 价格可能是 4130 - 8133的形式，先暂不处理
+            Double price = null;
+            try {
+                page.selectDouble("strong#J_StrPrice>em.tb-rmb-num");
+            } catch (Exception e) {
+                logger.error("parse price fail.", e);
+                price = null;
+            }
+
             Elements basicInfoEles = page.select("div#attributes>ul>li");
 
             // 宝贝详情
@@ -195,7 +207,14 @@ public class TaobaoCrawler extends BreadthCrawler {
                 return;
             }
             System.out.println("content:\n" + pricePromote);
-            item.setPricePromote(Double.valueOf(pricePromote));
+
+            //TODO: 价格可能是 4130 - 8133的形式，先暂不处理
+            try {
+                item.setPricePromote(Double.valueOf(pricePromote));
+            } catch (Exception e) {
+                logger.error("parse price promote fail", e);
+            }
+
         } else if (page.matchType(DETAIL_PAGE)) {
             // 详情页
             String id = page.meta("id");

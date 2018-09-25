@@ -6,9 +6,10 @@ build/
 *.log
 
 
-.idea
+.idea/
 .idea/gradle.xml
 *.iws
 *.iml
 *.ipr
-/out/
+out/
+taobaoCraw/

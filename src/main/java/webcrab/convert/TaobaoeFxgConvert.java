@@ -26,7 +26,7 @@ public class TaobaoeFxgConvert {
     private static SellerProperties sellerProperties = SellerProperties.getInstance();
 
     /**
-     * 淘宝规格转放心购
+     * 淘宝规格转放心购规格
      *
      * @param taobaoItem 淘宝商品信息
      * @return 放心购的商品信息格式 颜色|黑色,白色,黄色^尺码|S,M,L
@@ -34,6 +34,9 @@ public class TaobaoeFxgConvert {
      */
     public static String taobao2FxgSpecs(TaobaoItem taobaoItem) {
         List<TaobaoSpec> specs = taobaoItem.getSpecs();
+        if (specs == null || specs.isEmpty()) {
+            return SpecConstant.DEFAULT_SPEC;
+        }
         List<String> specStrs = new ArrayList<>();
         for (TaobaoSpec spec : specs) {
             List<TaobaoSpec> children = spec.getChildSpecs();
@@ -84,17 +87,49 @@ public class TaobaoeFxgConvert {
         product.setPayType(PayTypeEnum.ONLINE.getStrVal());
         product.setSpecId(String.valueOf(specs.getId()));
 
-        //寻找specs中的主规格
-        TaobaoSpec taobaoMainSpec = item.getMainSpec();
-        String taobaoMainSpecName = taobaoMainSpec.getName();
+        // 将规格设置到放心购产品里面，并解析出主规格和图片
+        extractTaobaoSpecs2FxgProduct(item, specs, product);
 
-        List<Spec> childSpecs = specs.getSpecs();
+        product.setMobile(sellerProperties.getMobile());
+
+        //读取属性
+        Map<String, String> basicInfoMap = item.getBasicInfoMap();
+        List<String> props = new ArrayList<>();
+        for (Map.Entry<String, String> entry : basicInfoMap.entrySet()) {
+            String propName = entry.getKey();
+            String propValue = entry.getValue();
+            String prop = propName + "|" + propValue;
+            props.add(prop);
+        }
+        product.setProductFormat(String.join("^", props));
+        product.setUsp(null); // TODO: 商品卖点，暂时不设置
+
+        product.setRecommendRemark(sellerProperties.getRecommendRemark());
+        product.setExtra(sellerProperties.getExtra());
+
+        return product;
+    }
+
+    /**
+     * 将规格设置到放心购产品里面，并解析出主规格和图片
+     *
+     * @param item    淘宝产品
+     * @param specs   放心购规格，应该是通过新增规格API返回的规格对象
+     * @param product 放心购产品
+     */
+    private static void extractTaobaoSpecs2FxgProduct(TaobaoItem item, Specs specs, Product product) {
+        //寻找specs中的主规格
         Spec mainSpec = null;
-        for (Spec childSpec : childSpecs) {
-            // 比较规格名称是否和主规格一致
-            if (taobaoMainSpecName.equals(childSpec.getName())) {
-                mainSpec = childSpec;
-                break;
+        TaobaoSpec taobaoMainSpec = item.getMainSpec();
+        if (taobaoMainSpec != null) {
+            String taobaoMainSpecName = taobaoMainSpec.getName();
+            List<Spec> childSpecs = specs.getSpecs();
+            for (Spec childSpec : childSpecs) {
+                // 比较规格名称是否和主规格一致
+                if (taobaoMainSpecName.equals(childSpec.getName())) {
+                    mainSpec = childSpec;
+                    break;
+                }
             }
         }
 
@@ -127,24 +162,5 @@ public class TaobaoeFxgConvert {
                 product.setSpecPic(specPic);
             }
         }
-
-        product.setMobile(sellerProperties.getMobile());
-
-        //读取属性
-        Map<String, String> basicInfoMap = item.getBasicInfoMap();
-        List<String> props = new ArrayList<>();
-        for (Map.Entry<String, String> entry : basicInfoMap.entrySet()) {
-            String propName = entry.getKey();
-            String propValue = entry.getValue();
-            String prop = propName + "|" + propValue;
-            props.add(prop);
-        }
-        product.setProductFormat(String.join("^", props));
-        product.setUsp(null); // TODO: 商品卖点，暂时不设置
-
-        product.setRecommendRemark(sellerProperties.getRecommendRemark());
-        product.setExtra(sellerProperties.getExtra());
-
-        return product;
     }
 }

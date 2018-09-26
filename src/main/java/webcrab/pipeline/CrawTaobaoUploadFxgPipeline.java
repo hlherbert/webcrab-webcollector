@@ -43,25 +43,6 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
         return SPEC_PREFIX + outProductId + "_" + nRetry;
     }
 
-    /**
-     * 从淘宝爬产品
-     */
-    private void stepCrawItemsAndSave() {
-        TaobaoItemFileDao dao = new TaobaoItemFileDao();
-        taobaoCrawler = new TaobaoCrawler("taobaoCraw", false, dao);
-        taobaoCrawler.setThreads(50);
-        //crawler.getConf().setTopN(100);
-        //crawler.setResumable(true);
-        /*start crawl with depth of 4*/
-        try {
-            taobaoCrawler.start(2);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
-        taobaoCrawler.outputResults();
-        productRepository.setItems(taobaoCrawler.getItemList());
-    }
 
     /**
      * 列出当前放心购当前商品信息
@@ -84,6 +65,26 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
     }
 
     /**
+     * 从淘宝爬产品
+     */
+    private void stepCrawItemsAndSave() {
+        TaobaoItemFileDao dao = new TaobaoItemFileDao();
+        taobaoCrawler = new TaobaoCrawler("taobaoCraw", false, dao);
+        taobaoCrawler.setThreads(50);
+        //crawler.getConf().setTopN(100);
+        //crawler.setResumable(true);
+        /*start crawl with depth of 4*/
+        try {
+            taobaoCrawler.start(2);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+        taobaoCrawler.outputResults();
+        productRepository.setItems(taobaoCrawler.getItemList());
+    }
+
+    /**
      * 上传产品到放心购
      */
     private void stepUploadToFxg() {
@@ -91,9 +92,12 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
         if (items.isEmpty()) {
             return;
         }
-        TaobaoItem item = items.get(0);
+        for (TaobaoItem item : items) {
+            uploadTaobaoItemToFxg(item);
+        }
+    }
 
-
+    private void uploadTaobaoItemToFxg(TaobaoItem item) {
         String outProductId = item.getId();
         boolean isProductExist = fangxingouService.isProductExist(outProductId);
         if (isProductExist) {
@@ -118,7 +122,6 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
         SpecAddResult specAddResult = fangxingouService.specAdd(specsUpload, specName);
         specsAdded = specAddResult.getData();
 
-
         Product product = TaobaoeFxgConvert.taobao2FxgProduct(item, specsAdded);
         fangxingouService.productAdd(product);
         System.out.println(JsonUtils.toJson(product));
@@ -127,7 +130,7 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
     @Override
     public void doAllSteps() {
         stepGetFxgProducts();
-        //stepCrawItemsAndSave();
-        //stepUploadToFxg();
+        stepCrawItemsAndSave();
+        stepUploadToFxg();
     }
 }

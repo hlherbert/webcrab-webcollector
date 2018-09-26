@@ -10,6 +10,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import webcrab.conf.InputSeedData;
 import webcrab.taobao.dao.TaobaoItemFileDao;
 import webcrab.taobao.model.TaobaoItem;
 import webcrab.taobao.model.TaobaoSpec;
@@ -39,9 +40,17 @@ public class TaobaoCrawler extends BreadthCrawler {
 
     private TaobaoItemFileDao dao;
     private Map<String, TaobaoItem> items = new ConcurrentHashMap<>();
+    private InputSeedData seedData = InputSeedData.getInstance();
 
     // javascript engine
     //private ScriptEngine jsEngine;
+
+    /**
+     * 加载种子url
+     */
+    private void loadSeeds(List<String> seeds) {
+        this.addSeed(seeds, ITEM_PAGE);
+    }
 
     /**
      * @param crawlPath 爬虫唯一名
@@ -52,7 +61,8 @@ public class TaobaoCrawler extends BreadthCrawler {
 
         this.dao = dao;
         /*start page*/
-        this.addSeed("https://item.taobao.com/item.htm?id=566374531994", ITEM_PAGE);
+        //this.addSeed("https://item.taobao.com/item.htm?id=566374531994", ITEM_PAGE);
+        loadSeeds(seedData.getSeeds());
 
         /*fetch url like http://news.hfut.edu.cn/show-xxxxxxhtml*/
         //this.addRegex("https://www.taobao.com/list/item-amp/.*htm");

@@ -3,6 +3,7 @@ package webcrab.fangxingou;
 import cn.edu.hfut.dmic.webcollector.util.MD5Utils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -162,17 +163,10 @@ public class FangxingouService {
         //　paramJson里面的数据需要按照key排序
         paramJson = sortJsonParam(paramJson);
 
-        //原始参数内容中含有含有 + 号, 需要在正式请求时确保被替换成%2b, 否则被无法正常识别
-        //paramJson = paramJson.replace("+", "%2b");
-
-        //转码
-//        try {
-//            paramJson= URLEncoder.encode(paramJson,"UTF-8");
-//        } catch (UnsupportedEncodingException e) {
-//            logger.error("url encoding fail.",e);
-//        }
-
         String sign = sign(method, paramJson, timestamp);
+
+        //原始参数内容中含有含有 + 号, 需要在正式请求时确保被替换成%2b, 否则被无法正常识别. 先签名再转换
+        paramJson = paramJson.replace("+", "%2B");
 
         String urlParams = "app_key=" + APP_KEY
                 + "&" + "method=" + method
@@ -183,6 +177,11 @@ public class FangxingouService {
 
         String uri = API_BASE_URL + "/" + methodUrl + "?" + urlParams;
         logger.info(uri);
+
+        // TODO: test
+        HttpUrl httpUrl = HttpUrl.parse(uri);
+        String httpUrlQuery = httpUrl.encodedQuery();
+        logger.info(httpUrlQuery);
         final Request request = new Request.Builder().url(uri)
                 .get().build();
 

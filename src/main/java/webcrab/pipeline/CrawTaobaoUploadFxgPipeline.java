@@ -57,7 +57,7 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
         //fangxingouService.productCategory("0");
 
         //详细商品
-        String outProductId = "566374531994";
+        String outProductId = "561115473106";
         fangxingouService.productDetail(outProductId);
 
         //SKU
@@ -130,7 +130,7 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
     @Override
     public void doAllSteps() {
         stepGetFxgProducts();
-        stepCrawItemsAndSave();
-        stepUploadToFxg();
+        //stepCrawItemsAndSave();
+        //stepUploadToFxg();
     }
 }

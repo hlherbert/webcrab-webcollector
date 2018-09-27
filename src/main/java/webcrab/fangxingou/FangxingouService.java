@@ -252,7 +252,7 @@ public class FangxingouService {
         Response resp = callRemoteMethod(method, param);
         try {
             String s = resp.body().string();
-            System.out.println(s);
+            logger.info("[PRODUCT CATEGORY] " + s);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -304,7 +304,7 @@ public class FangxingouService {
 
         Response resp = callRemoteMethod(method, param);
         try {
-            System.out.println(resp.body().string());
+            logger.info("[PRODUCT LIST] " + resp.body().string());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -333,7 +333,7 @@ public class FangxingouService {
         param2.setOutProductId(outProductId);
         Response resp = callRemoteMethod(method, param2);
         try {
-            System.out.println(resp.body().string());
+            logger.info("[PRODUCT DETAIL] " + resp.body().string());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -373,7 +373,7 @@ public class FangxingouService {
         param.setOutProductId(outProductId);
         Response resp = callRemoteMethod(method, param);
         try {
-            System.out.println(resp.body().string());
+            System.out.println("[SKU LIST] " + resp.body().string());
         } catch (IOException e) {
             e.printStackTrace();
         }

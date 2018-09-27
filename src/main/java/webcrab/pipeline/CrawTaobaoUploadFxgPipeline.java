@@ -6,6 +6,7 @@ import webcrab.convert.TaobaoeFxgConvert;
 import webcrab.fangxingou.FangxingouService;
 import webcrab.fangxingou.module.Product;
 import webcrab.fangxingou.module.SpecConstant;
+import webcrab.fangxingou.module.SpecIndex;
 import webcrab.fangxingou.module.Specs;
 import webcrab.fangxingou.module.po.SpecAddResult;
 import webcrab.fangxingou.module.po.SpecListResult;
@@ -109,28 +110,36 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
         // 按照一定的规则构造规则名称
         String specName = makeSpecName(outProductId, 0);
         Specs specsAdded = null;
-        int nRetry = 0; //遇到重名的spec次数，如果规格重名了，则后缀增加_1, _2 等
-        while (productRepository.isSpecNameExist(specName)) {
-            //规格已经有了，就重命名规格
-            logger.error(MessageFormat.format("spec {0} has already exist. create new name", specName));
-            specName = makeSpecName(outProductId, ++nRetry);
-        }
 
-        // 规格没有，则创建规格上传
-        String specsUpload = TaobaoeFxgConvert.taobao2FxgSpecs(item);
-        System.out.println(specsUpload);
-        SpecAddResult specAddResult = fangxingouService.specAdd(specsUpload, specName);
-        specsAdded = specAddResult.getData();
+//        int nRetry = 0; //遇到重名的spec次数，如果规格重名了，则后缀增加_1, _2 等
+//        while (productRepository.isSpecNameExist(specName)) {
+//            //已经有规格，就添加后缀重命名
+//            logger.error(MessageFormat.format("spec {0} has already exist. create new name", specName));
+//            specName = makeSpecName(outProductId, ++nRetry);
+//        }
+
+        if (productRepository.isSpecNameExist(specName)) {
+            //规格已经有了，就使用现有规格
+            SpecIndex specIndex = productRepository.getSpecIndex(specName);
+            specsAdded = fangxingouService.specDetail(String.valueOf(specIndex.getId())).getData();
+        } else {
+            // 规格没有，则创建规格上传
+            String specsUpload = TaobaoeFxgConvert.taobao2FxgSpecs(item);
+            //System.out.println(specsUpload);
+            logger.info("upload spec: " + specsUpload);
+            SpecAddResult specAddResult = fangxingouService.specAdd(specsUpload, specName);
+            specsAdded = specAddResult.getData();
+        }
 
         Product product = TaobaoeFxgConvert.taobao2FxgProduct(item, specsAdded);
         fangxingouService.productAdd(product);
-        System.out.println(JsonUtils.toJson(product));
+        logger.info("product upload: " + JsonUtils.toJson(product));
     }
 
     @Override
     public void doAllSteps() {
         stepGetFxgProducts();
-        //stepCrawItemsAndSave();
-        //stepUploadToFxg();
+        stepCrawItemsAndSave();
+        stepUploadToFxg();
     }
 }

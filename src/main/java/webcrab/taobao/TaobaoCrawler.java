@@ -84,7 +84,7 @@ public class TaobaoCrawler extends BreadthCrawler {
         if (page.matchType(ITEM_PAGE)) {
             String id = URLParser.fromURL(url).getParameter("id");
             //String id = page.url().replace("https://item.taobao.com/item.htm?id=","");
-            System.out.println("id="+id);
+            logger.debug("visit item id=" + id);
 
             // 宝贝一般信息
             String title = page.selectText("div#J_Title>h3");
@@ -213,7 +213,7 @@ public class TaobaoCrawler extends BreadthCrawler {
             if (item == null) {
                 return;
             }
-            System.out.println("content:\n" + pricePromote);
+            logger.debug("price promote:\n" + pricePromote);
 
             //TODO: 价格可能是 4130 - 8133的形式，取第一个值即低值
             Double dPricePromote = parsePrice(pricePromote);

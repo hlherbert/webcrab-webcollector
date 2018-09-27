@@ -1,8 +1,6 @@
 package webcrab.util;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 
 import java.lang.reflect.Type;
 
@@ -12,19 +10,59 @@ import java.lang.reflect.Type;
 public class JsonUtils {
     // 对象属性 discountPrice转为discount_price
     private static final Gson gson = createGson();
+    private static final Gson prettyGson = createPrettyGson();
 
-    public static Gson createGson() {
+    protected static Gson createGson() {
         return new GsonBuilder()
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .setDateFormat("yyyy-MM-dd hh:mm:ss")
                 .create();
     }
 
+    protected static Gson createPrettyGson() {
+        return createGson().newBuilder().setPrettyPrinting().create();
+    }
+
+    /**
+     * 对象转json
+     *
+     * @param obj
+     * @return
+     */
     public static String toJson(Object obj) {
         return gson.toJson(obj);
     }
 
+    /**
+     * 对象转json并美化
+     *
+     * @param obj
+     * @return
+     */
+    public static String toPrettyJson(Object obj) {
+        return prettyGson.toJson(obj);
+    }
+
+    /**
+     * json转对象
+     * @param json
+     * @param type
+     * @param <T>
+     * @return
+     */
     public static <T> T fromJson(String json, Type type) {
         return gson.fromJson(json, type);
+    }
+
+    /**
+     * 美化json
+     *
+     * @param json
+     * @return
+     */
+    public static String prettyJson(String json) {
+        JsonParser jsonParser = new JsonParser();
+        JsonObject jsonObject = jsonParser.parse(json).getAsJsonObject();
+        return prettyGson.toJson(jsonObject);
     }
 }

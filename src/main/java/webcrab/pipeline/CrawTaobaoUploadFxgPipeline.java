@@ -46,23 +46,14 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
 
 
     /**
-     * 列出当前放心购当前商品信息
+     * 获取当前放心购当前商品信息，并存入仓库
      */
     private void stepGetFxgProducts() {
+        //fangxingouService.productCategoryTree();
+
         // 存入当前规格列表
         SpecListResult specList = fangxingouService.specList(); //规格
         productRepository.setSpecIndexList(specList.getData());
-
-        //fangxingouService.specDetail("3240788"); //规格详情
-        //fangxingouService.productCategoryTree();
-        //fangxingouService.productCategory("0");
-
-        //详细商品
-        String outProductId = "561115473106";
-        fangxingouService.productDetail(outProductId);
-
-        //SKU
-        fangxingouService.skuList(outProductId);
     }
 
     /**
@@ -136,10 +127,24 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
         logger.info("product upload: " + JsonUtils.toJson(product));
     }
 
+    /**
+     * 调试
+     */
+    public void stepDebug() {
+        //详细商品
+        String outProductId = "561115473106";
+        fangxingouService.productDetail(outProductId);
+
+        String specId = "3368417";
+        Specs specs = fangxingouService.specDetail(specId).getData();
+        logger.info(JsonUtils.toPrettyJson(specs));
+    }
+
     @Override
     public void doAllSteps() {
         stepGetFxgProducts();
         stepCrawItemsAndSave();
         stepUploadToFxg();
+        stepDebug();
     }
 }

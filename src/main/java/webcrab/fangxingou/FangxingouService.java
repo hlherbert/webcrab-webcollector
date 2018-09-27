@@ -1,15 +1,12 @@
 package webcrab.fangxingou;
 
 import cn.edu.hfut.dmic.webcollector.util.MD5Utils;
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 import webcrab.conf.SellerProperties;
 import webcrab.datatype.TreeNode;
 import webcrab.fangxingou.module.Category;
@@ -35,9 +32,6 @@ public class FangxingouService {
     static {
         instance = new FangxingouService();
     }
-
-    private final Retrofit retrofit;
-    private final FangxingouApi api;
     private final OkHttpClient okHttpClient;
 
     private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -52,14 +46,6 @@ public class FangxingouService {
     }
 
     protected FangxingouService() {
-        Gson gson = JsonUtils.createGson();
-
-        retrofit = new Retrofit.Builder() //设置数据解析器
-                .addConverterFactory(GsonConverterFactory.create(gson)) //设置网络请求的Url地址
-                .baseUrl(API_BASE_URL).build(); // 创建网络请求接口的实例
-
-        api = retrofit.create(FangxingouApi.class);
-
         okHttpClient = new OkHttpClient();
     }
 
@@ -175,12 +161,7 @@ public class FangxingouService {
                 + "&" + "sign=" + sign;
 
         String uri = API_BASE_URL + "/" + methodUrl + "?" + urlParams;
-        logger.info(uri);
-
-//        // TODO: test
-//        HttpUrl httpUrl = HttpUrl.parse(uri);
-//        String httpUrlQuery = httpUrl.encodedQuery();
-//        logger.info(httpUrlQuery);
+        logger.debug(uri);
 
         final Request request = new Request.Builder().url(uri)
                 .get().build();
@@ -333,7 +314,7 @@ public class FangxingouService {
         param2.setOutProductId(outProductId);
         Response resp = callRemoteMethod(method, param2);
         try {
-            logger.info("[PRODUCT DETAIL] " + resp.body().string());
+            logger.info("[PRODUCT DETAIL] " + JsonUtils.prettyJson(resp.body().string()));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -373,7 +354,7 @@ public class FangxingouService {
         param.setOutProductId(outProductId);
         Response resp = callRemoteMethod(method, param);
         try {
-            System.out.println("[SKU LIST] " + resp.body().string());
+            logger.info("[SKU LIST] " + resp.body().string());
         } catch (IOException e) {
             e.printStackTrace();
         }

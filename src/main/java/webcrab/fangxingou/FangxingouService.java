@@ -352,7 +352,7 @@ public class FangxingouService {
         String method = FangxingouApi.SKU_ADD;
         Response resp = callRemoteMethod(method, sku);
         try {
-            logger.info("[SKU ADD] " + JsonUtils.prettyJson(resp.body().string()));
+            logger.info("[SKU ADD] " + resp.body().string());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -360,17 +360,13 @@ public class FangxingouService {
     /**
      * sku列表
      */
-    public void skuList(String outProductId) {
+    public SkuListResult skuList(String outProductId) {
         String method = FangxingouApi.SKU_LIST;
 
         SkuListParam param = new SkuListParam();
         param.setOutProductId(outProductId);
-        Response resp = callRemoteMethod(method, param);
-        try {
-            logger.info("[SKU LIST] " + resp.body().string());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        SkuListResult resp = callRemoteMethod(method, param, SkuListResult.class);
+        return resp;
     }
 
     public void test() {

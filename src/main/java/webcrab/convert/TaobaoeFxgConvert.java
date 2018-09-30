@@ -183,10 +183,11 @@ public class TaobaoeFxgConvert {
         Map<TaobaoSpec, Spec> taobaoSpec2SpecMap = new HashMap<>(); // taobaoSpec, spec
 
         for (TaobaoSpec tbspec : item.getSpecs()) {
-            taobaoSpecMapByName.put(tbspec.getName(), tbspec);
-            if (tbspec.getId() != null) {
-                taobaoSpecMapById.put(tbspec.getId(), tbspec);
-            }
+            // 第一级不加入
+//            taobaoSpecMapByName.put(tbspec.getName(), tbspec);
+//            if (tbspec.getId() != null) {
+//                taobaoSpecMapById.put(tbspec.getId(), tbspec);
+//            }
             if (tbspec.getChildSpecs() == null) {
                 continue;
             }
@@ -198,7 +199,8 @@ public class TaobaoeFxgConvert {
             }
         }
         for (Spec spec : specs.getSpecs()) {
-            specMapByName.put(spec.getName(), spec);
+            //第一级不加入
+            //specMapByName.put(spec.getName(), spec);
             if (spec.getValues() == null) {
                 continue;
             }

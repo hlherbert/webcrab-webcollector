@@ -5,16 +5,20 @@ import org.slf4j.LoggerFactory;
 import webcrab.convert.TaobaoeFxgConvert;
 import webcrab.fangxingou.FangxingouService;
 import webcrab.fangxingou.module.*;
+import webcrab.fangxingou.module.po.SkuListResultData;
 import webcrab.fangxingou.module.po.SpecAddResult;
 import webcrab.fangxingou.module.po.SpecListResult;
 import webcrab.storage.ProductRepository;
 import webcrab.taobao.TaobaoCrawler;
 import webcrab.taobao.dao.TaobaoItemFileDao;
 import webcrab.taobao.model.TaobaoItem;
+import webcrab.taobao.model.TaobaoSku;
 import webcrab.util.JsonUtils;
 
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 爬淘宝商品，并上传到放心购的流水线
@@ -82,11 +86,48 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
             return;
         }
         for (TaobaoItem item : items) {
+            if (!checkItemValid(item)) {
+                continue;
+            }
             uploadTaobaoItemToFxg(item);
         }
     }
 
+    /**
+     * 检查项目是否符合可上传条件
+     *
+     * @param item
+     * @return
+     */
+    private boolean checkItemValid(TaobaoItem item) {
+        // sku中descIds超过3级的，无法上传SKU
+        Map<String, TaobaoSku> skuMap = item.getSkuMap();
+        if (skuMap != null) {
+            for (TaobaoSku sku : skuMap.values()) {
+                char[] chars = sku.getSpecIds().toCharArray();
+                int nSpecIds = 0;
+                for (char c : chars) {
+                    if (c == ':') {
+                        nSpecIds++;
+                    }
+                }
+                if (nSpecIds > 3) {
+                    logger.warn("invalid item: sku specIds > 3.  specIds=" + sku.getSpecIds());
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     private void uploadTaobaoItemToFxg(TaobaoItem item) {
+        boolean valid = checkItemValid(item);
+        if (!valid) {
+            logger.error("taobao item not valid.");
+            return;
+        }
+
         String outProductId = item.getId();
         boolean isProductExist = fangxingouService.isProductExist(outProductId);
 
@@ -124,8 +165,22 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
         }
 
         List<Sku> skuList = TaobaoeFxgConvert.taobao2FxgSku(item, product, specs);
+        List<SkuListResultData> currentSkuListRst = fangxingouService.skuList(outProductId).getData();
+        Map<String, SkuListResultData> currentSkus = new HashMap<>();
+        if (currentSkuListRst != null) {
+            for (SkuListResultData sku : currentSkuListRst) {
+                currentSkus.put(String.valueOf(sku.getId()), sku);
+            }
+        }
+
         for (Sku sku : skuList) {
-            //fangxingouService.skuAdd(sku);
+            SkuListResultData skuCur = currentSkus.get(sku.getOutSkuId());
+            if (skuCur != null) {
+                logger.warn("sku exists " + sku.getOutSkuId());
+                logger.info(JsonUtils.toJson(skuCur));
+                continue;
+            }
+            fangxingouService.skuAdd(sku);
             logger.info("sku upload: " + JsonUtils.toJson(sku));
         }
     }

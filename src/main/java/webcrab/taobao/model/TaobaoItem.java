@@ -43,7 +43,7 @@ public class TaobaoItem {
     //热门描述
     private String hotDesc;
 
-    // sku表
+    // sku表 <specIds, sku>
     private Map<String, TaobaoSku> skuMap;
 
     public String getTaobaoUrl() {

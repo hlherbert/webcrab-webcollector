@@ -89,11 +89,6 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
     private void uploadTaobaoItemToFxg(TaobaoItem item) {
         String outProductId = item.getId();
         boolean isProductExist = fangxingouService.isProductExist(outProductId);
-        if (isProductExist) {
-            // 产品已经有了，就不上传了
-            logger.error(MessageFormat.format("product {0} has already exist", outProductId));
-            return;
-        }
 
         // 按照一定的规则构造规则名称
         String specName = makeSpecName(outProductId, 0);
@@ -120,12 +115,17 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
         }
 
         Product product = TaobaoeFxgConvert.taobao2FxgProduct(item, specs);
-        fangxingouService.productAdd(product);
-        logger.info("product upload: " + JsonUtils.toJson(product));
+        if (isProductExist) {
+            // 产品已经有了，就不上传了
+            logger.info(MessageFormat.format("product {0} has already exist. do not upload.", outProductId));
+        } else {
+            fangxingouService.productAdd(product);
+            logger.info("product upload: " + JsonUtils.toJson(product));
+        }
 
         List<Sku> skuList = TaobaoeFxgConvert.taobao2FxgSku(item, product, specs);
         for (Sku sku : skuList) {
-            fangxingouService.skuAdd(sku);
+            //fangxingouService.skuAdd(sku);
             logger.info("sku upload: " + JsonUtils.toJson(sku));
         }
     }
@@ -148,6 +148,6 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
         stepGetFxgProducts();
         stepCrawItemsAndSave();
         stepUploadToFxg();
-        stepDebug();
+        //stepDebug();
     }
 }

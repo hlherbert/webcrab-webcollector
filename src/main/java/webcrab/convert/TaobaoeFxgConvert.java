@@ -1,8 +1,11 @@
 package webcrab.convert;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import webcrab.conf.SellerProperties;
 import webcrab.fangxingou.module.*;
 import webcrab.taobao.model.TaobaoItem;
+import webcrab.taobao.model.TaobaoSku;
 import webcrab.taobao.model.TaobaoSpec;
 
 import java.util.ArrayList;
@@ -14,7 +17,7 @@ import java.util.Map;
  * 淘宝转放心购
  */
 public class TaobaoeFxgConvert {
-
+    private static Logger logger = LoggerFactory.getLogger(TaobaoeFxgConvert.class);
     /**
      * 商品轮播图数量限制
      */
@@ -166,16 +169,117 @@ public class TaobaoeFxgConvert {
 
     /**
      * 淘宝产品中找到sku，并转换为fxg的sku
-     * @param item
-     * @param product
-     * @param specs
+     * @param item 淘宝产品
+     * @param product 淘宝产品转换的放心购产品
+     * @param specs 产品规格
      * @return
      */
     public static List<Sku> taobao2FxgSku(TaobaoItem item, Product product, Specs specs) {
         List<Sku> skuList = new ArrayList<Sku>();
-//        Sku sku = new Sku();
-//        sku.setOutProductId(product.getOutProductId());
-//        sku.setOutSkuId();
+
+        Map<String, TaobaoSpec> taobaoSpecMapByName = new HashMap<>(); //name, taobaoSpec
+        Map<String, TaobaoSpec> taobaoSpecMapById = new HashMap<>(); //id, taobaoSpec
+        Map<String, Spec> specMapByName = new HashMap<>(); //name, spec
+        Map<TaobaoSpec, Spec> taobaoSpec2SpecMap = new HashMap<>(); // taobaoSpec, spec
+
+        for (TaobaoSpec tbspec : item.getSpecs()) {
+            taobaoSpecMapByName.put(tbspec.getName(), tbspec);
+            if (tbspec.getId() != null) {
+                taobaoSpecMapById.put(tbspec.getId(), tbspec);
+            }
+            if (tbspec.getChildSpecs() == null) {
+                continue;
+            }
+            for (TaobaoSpec childTbSpec : tbspec.getChildSpecs()) {
+                taobaoSpecMapByName.put(childTbSpec.getName(), childTbSpec);
+                if (childTbSpec.getId() != null) {
+                    taobaoSpecMapById.put(childTbSpec.getId(), childTbSpec);
+                }
+            }
+        }
+        for (Spec spec : specs.getSpecs()) {
+            specMapByName.put(spec.getName(), spec);
+            if (spec.getValues() == null) {
+                continue;
+            }
+            for (Spec childSpec : spec.getValues()) {
+                specMapByName.put(childSpec.getName(), childSpec);
+            }
+        }
+
+        for (TaobaoSpec tbSpec : taobaoSpecMapById.values()) {
+            String name = tbSpec.getName();
+            Spec spec = specMapByName.get(name);
+            if (spec != null) {
+                taobaoSpec2SpecMap.put(tbSpec, spec);
+            }
+        }
+
+        // 产品只有唯一一种SKU时
+        if (item.getSkuMap() == null || item.getSkuMap().size() == 0) {
+            //添加一个默认SKU
+            Sku sku = new Sku();
+
+            sku.setOutProductId(product.getOutProductId());
+            sku.setOutSkuId(product.getOutProductId()); //使用out_productid作为sku_id
+            sku.setSpecId(product.getSpecId()); //父规格ID
+            sku.setSpecDetailIds(String.valueOf(specs.getSpecs().get(0).getId()));//需要转换为 子规格ID100041|150041|160041
+            sku.setStockNum(sellerProperties.getStock());//使用商家预设的库存
+            sku.setPrice(product.getMarketPrice());
+            sku.setSettlementPrice(product.getDiscountPrice());
+            sku.setCode(product.getOutProductId());
+
+            skuList.add(sku);
+            return skuList;
+        }
+
+        // 产品有多个SKU
+        for (TaobaoSku tbSku : item.getSkuMap().values()) {
+            String tbSpecIds = tbSku.getSpecIds();
+            //淘宝规格ID ;20549:59280855;1627207:28334;
+            //需要转换为放心购 子规格ID 100041|150041|160041
+            String[] tbSpecIdArray = tbSpecIds.split(";");
+            List<String> specIdList = new ArrayList<>();
+            boolean specError = false; //解析spec是否遇到错误
+            for (String tbSpecId : tbSpecIdArray) {
+                if (tbSpecId == null || tbSpecId.isEmpty()) {
+                    continue;
+                }
+                //找到tbSpecId对应的tbSpec
+                TaobaoSpec tbSpec = taobaoSpecMapById.get(tbSpecId);
+                if (tbSpec == null) {
+                    continue;
+                }
+                //tbSpec找到对应spec
+                Spec spec = taobaoSpec2SpecMap.get(tbSpec);
+                if (spec == null) {
+                    logger.error("cannot find spec for tbspec:" + tbSpecId);
+                    specError = true;
+                    break;
+                }
+                specIdList.add(String.valueOf(spec.getId()));
+            }
+
+            if (specError) {
+                continue;
+            }
+            String specDetailIds = String.join("|", specIdList);
+
+            Sku sku = new Sku();
+            sku.setOutProductId(product.getOutProductId());
+            sku.setOutSkuId(tbSku.getSkuId());
+            sku.setSpecId(product.getSpecId()); //父规格ID
+            sku.setSpecDetailIds(specDetailIds);//需要转换为 子规格ID 100041|150041|160041
+            sku.setStockNum(sellerProperties.getStock());//使用商家预设的库存
+            long tbSkuPrice = (long) (Double.valueOf(tbSku.getPrice()) * 100); //单位分,整数
+            String strPrice = String.valueOf(tbSkuPrice);
+            sku.setPrice(strPrice);
+            sku.setSettlementPrice(strPrice);
+            sku.setCode(product.getOutProductId());
+
+            skuList.add(sku);
+        }
+
         return skuList;
     }
 }

@@ -5,7 +5,6 @@ import cn.edu.hfut.dmic.webcollector.model.CrawlDatums;
 import cn.edu.hfut.dmic.webcollector.model.Page;
 import cn.edu.hfut.dmic.webcollector.plugin.berkeley.BreadthCrawler;
 import com.google.gson.FieldNamingPolicy;
-import com.google.gson.reflect.TypeToken;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -86,185 +85,206 @@ public class TaobaoCrawler extends BreadthCrawler {
         String url = page.url();
 
         /*if page is item page*/
-        if (page.matchType(ITEM_PAGE)) {
-            String id = URLParser.fromURL(url).getParameter("id");
-            //String id = page.url().replace("https://item.taobao.com/item.htm?id=","");
-            logger.debug("visit item id=" + id);
-
-            // 宝贝一般信息
-            String title = page.selectText("div#J_Title>h3");
-            Long stock = page.selectLong("span#J_SpanStock");
-
-            //TODO: 价格可能是 4130 - 8133的形式，先暂不处理
-            String strPrice = page.selectText("strong#J_StrPrice>em.tb-rmb-num");
-            Double price = parsePrice(strPrice);
-
-            Elements basicInfoEles = page.select("div#attributes>ul>li");
-
-            // 宝贝详情
-            // 是通过javascript加载的，不能直接从html获取到，因此需要先得到详情URL，然后发请求再获取
-            String descUrlJson = page.regex(".*\\bdescUrl\\s*:.*,");
-            int startDescHttpUrl = descUrlJson.lastIndexOf("?");
-            int endDescHttpsUrl = descUrlJson.lastIndexOf(":");
-            String descHttpUri = descUrlJson.substring(startDescHttpUrl,endDescHttpsUrl);
-            startDescHttpUrl = descHttpUri.indexOf("'");
-            endDescHttpsUrl = descHttpUri.lastIndexOf("'");
-            descHttpUri = descHttpUri.substring(startDescHttpUrl+1, endDescHttpsUrl);
-            descHttpUri = "http:"+descHttpUri;
-            String detail = descHttpUri;
-
-            // 组装宝贝对象
-            TaobaoItem taobaoItem = new TaobaoItem();
-            taobaoItem.setId(id);
-            taobaoItem.setTaobaoUrl(url);
-            taobaoItem.setTitle(title);
-            taobaoItem.setPrice(price);
-            //taobaoItem.setPricePromote();
-            taobaoItem.setStock(stock);
-
-            Map<String, String> basicInfoMap = new HashMap<>();
-            // 基本信息
-            StringBuffer buf = new StringBuffer();
-            for (String basicInfo : basicInfoEles.eachText()) {
-                String[] keyValue = basicInfo.split(":",2);
-                if (keyValue != null) {
-                    buf.append(basicInfo + "\n");
-                    String key = keyValue[0].trim();
-                    String value = keyValue[1].trim();
-                    basicInfoMap.put(key, value);
-                }
+        try {
+            if (page.matchType(ITEM_PAGE)) {
+                visitItemPage(page, next, url);
+            } else if (page.matchType(AMP_PAGE)) {
+                visitAmpPage(page);
+            } else if (page.matchType(DETAIL_PAGE)) {
+                visitDetailPage(page);
             }
-            taobaoItem.setBasicInfo(buf.toString());
-            taobaoItem.setBasicInfoMap(basicInfoMap);
-            taobaoItem.setDetail(detail);
-            items.put(id, taobaoItem);
+        } catch (Exception e) {
+            logger.error("visit page error.", e);
+        }
+    }
 
-            // 爬取滚动播放图片
-            Elements picEles = page.select("div.tb-pic>a>img");
-            List<String> pics = picEles.eachAttr("data-src");
-            pics.removeIf(s -> !s.endsWith(".jpg"));
-            for (int i = 0; i < pics.size(); i++) {
-                // 读取的是缩略图路径，去掉最后的_50x50.jpg就是原图
-                String pic = pics.get(i).replace("_50x50.jpg", "");
-                pic = processImgUrl(pic);
-                pics.set(i, pic);
+    private void visitDetailPage(Page page) {
+        // 详情页
+        String id = page.meta("id");
+        TaobaoItem item = items.get(id);
+        if (item == null) {
+            return;
+        }
+
+        // 详情的html内容
+        String desc = page.html(); // var desc='.....'
+        int start = desc.indexOf("'");
+        int end = desc.lastIndexOf("'");
+        desc = desc.substring(start + 1, end);
+        item.setDetail(desc);
+
+        //　解析里面的img src=的内容
+        Document doc = Jsoup.parse(desc);
+        Elements imgEles = doc.select("img");
+        List<String> imgSrcs = imgEles.eachAttr("src");
+        //移除不是以jpg结尾的图片,否则格式有?等，会导致上传失败
+        imgSrcs.removeIf(s -> !s.endsWith(".jpg"));
+        for (int i = 0; i < imgSrcs.size(); i++) {
+            imgSrcs.set(i, processImgUrl(imgSrcs.get(i)));
+        }
+        item.setDetailImgs(imgSrcs);
+    }
+
+    private void visitAmpPage(Page page) {
+        // lite page, 包含优惠价
+        //String content = page.html();//page.select("div#artibody", 0).text();
+        String pricePromote = page.selectText("div.price-contianer>div.price");
+        pricePromote = pricePromote.replace("¥", "");
+
+        String id = page.meta("id");
+        TaobaoItem item = items.get(id);
+        if (item == null) {
+            return;
+        }
+        logger.debug("price promote:\n" + pricePromote);
+
+        //TODO: 价格可能是 4130 - 8133的形式，取第一个值即低值
+        Double dPricePromote = parsePrice(pricePromote);
+        item.setPricePromote(dPricePromote);
+    }
+
+    private void visitItemPage(Page page, CrawlDatums next, String url) {
+        String id = URLParser.fromURL(url).getParameter("id");
+        //String id = page.url().replace("https://item.taobao.com/item.htm?id=","");
+        logger.debug("visit item id=" + id);
+
+        // 宝贝一般信息
+        String title = page.selectText("div#J_Title>h3");
+        Long stock = page.selectLong("span#J_SpanStock");
+
+        //TODO: 价格可能是 4130 - 8133的形式，先暂不处理
+        String strPrice = page.selectText("strong#J_StrPrice>em.tb-rmb-num");
+        Double price = parsePrice(strPrice);
+
+        Elements basicInfoEles = page.select("div#attributes>ul>li");
+
+        // 宝贝详情
+        // 是通过javascript加载的，不能直接从html获取到，因此需要先得到详情URL，然后发请求再获取
+        String descUrlJson = page.regex(".*\\bdescUrl\\s*:.*,");
+        int startDescHttpUrl = descUrlJson.lastIndexOf("?");
+        int endDescHttpsUrl = descUrlJson.lastIndexOf(":");
+        String descHttpUri = descUrlJson.substring(startDescHttpUrl, endDescHttpsUrl);
+        startDescHttpUrl = descHttpUri.indexOf("'");
+        endDescHttpsUrl = descHttpUri.lastIndexOf("'");
+        descHttpUri = descHttpUri.substring(startDescHttpUrl + 1, endDescHttpsUrl);
+        descHttpUri = "http:" + descHttpUri;
+        String detail = descHttpUri;
+
+        // 组装宝贝对象
+        TaobaoItem taobaoItem = new TaobaoItem();
+        taobaoItem.setId(id);
+        taobaoItem.setTaobaoUrl(url);
+        taobaoItem.setTitle(title);
+        taobaoItem.setPrice(price);
+        //taobaoItem.setPricePromote();
+        taobaoItem.setStock(stock);
+
+        Map<String, String> basicInfoMap = new HashMap<>();
+        // 基本信息
+        StringBuffer buf = new StringBuffer();
+        for (String basicInfo : basicInfoEles.eachText()) {
+            String[] keyValue = basicInfo.split(":", 2);
+            if (keyValue != null) {
+                buf.append(basicInfo + "\n");
+                String key = keyValue[0].trim();
+                String value = keyValue[1].trim();
+                basicInfoMap.put(key, value);
             }
-            taobaoItem.setPics(pics);
+        }
+        taobaoItem.setBasicInfo(buf.toString());
+        taobaoItem.setBasicInfoMap(basicInfoMap);
+        taobaoItem.setDetail(detail);
+        items.put(id, taobaoItem);
 
-            // 爬取规格
-            Elements specEles = page.select("#J_isku ul.J_TSaleProp");
-            List<TaobaoSpec> taobaoSpecs = new ArrayList<>();
-            TaobaoSpec mainSpec = null;
-            for (Element ele : specEles) {
-                String specName = ele.attr("data-property");
-                TaobaoSpec tbSpec = new TaobaoSpec();
-                tbSpec.setName(specName);
-                Elements childSpecEles = ele.select("a");
+        // 爬取滚动播放图片
+        Elements picEles = page.select("div.tb-pic>a>img");
+        List<String> pics = picEles.eachAttr("data-src");
+        pics.removeIf(s -> !s.endsWith(".jpg"));
+        for (int i = 0; i < pics.size(); i++) {
+            // 读取的是缩略图路径，去掉最后的_50x50.jpg就是原图
+            String pic = pics.get(i).replace("_50x50.jpg", "");
+            pic = processImgUrl(pic);
+            pics.set(i, pic);
+        }
+        taobaoItem.setPics(pics);
 
-                //有图片的就是主规格
-                boolean isMainSpec = false;
-                if (ele.hasClass("tb-img")) {
-                    isMainSpec = true;
-                    mainSpec = tbSpec;
-                }
+        // 爬取规格
+        Elements specEles = page.select("#J_isku ul.J_TSaleProp");
+        List<TaobaoSpec> taobaoSpecs = new ArrayList<>();
+        TaobaoSpec mainSpec = null;
+        for (Element ele : specEles) {
+            String specName = ele.attr("data-property");
+            TaobaoSpec tbSpec = new TaobaoSpec();
+            tbSpec.setName(specName);
 
-                for (Element childEle : childSpecEles) {
-                    TaobaoSpec childSpec = new TaobaoSpec();
-                    String childName = childEle.selectFirst("span").text();
-                    childSpec.setName(childName);
-
-                    String style = childEle.attr("style");
-                    if (style != null && !style.isEmpty()) {
-                        int start = style.indexOf("url(//") + "url(//".length();
-                        int end = style.indexOf("_30x30.jpg)");
-                        String specPic = style.substring(start, end);
-                        String img = processImgUrl(specPic);
-                        childSpec.setImg(img);
-                    }
-                    tbSpec.getChildSpecs().add(childSpec);
-                }
-                taobaoSpecs.add(tbSpec);
+            //有图片的就是主规格
+            boolean isMainSpec = false;
+            if (ele.hasClass("tb-img")) {
+                isMainSpec = true;
+                mainSpec = tbSpec;
             }
-            taobaoItem.setMainSpec(mainSpec);
-            taobaoItem.setSpecs(taobaoSpecs);
 
-            // 爬sku信息
-            String skuJson = page.regex("\\s*skuMap\\s*:.*");
+            Elements childSpecEles = ele.select("li");
+            for (Element childEle : childSpecEles) {
+                TaobaoSpec childSpec = new TaobaoSpec();
+                String childSpecId = childEle.attr("data-value");
+                String childName = childEle.selectFirst("span").text();
+                childSpec.setId(childSpecId);
+                childSpec.setName(childName);
+
+                String style = childEle.attr("style");
+                if (style != null && !style.isEmpty()) {
+                    int start = style.indexOf("url(//") + "url(//".length();
+                    int end = style.indexOf("_30x30.jpg)");
+                    String specPic = style.substring(start, end);
+                    String img = processImgUrl(specPic);
+                    childSpec.setImg(img);
+                }
+                tbSpec.getChildSpecs().add(childSpec);
+            }
+            taobaoSpecs.add(tbSpec);
+        }
+        taobaoItem.setMainSpec(mainSpec);
+        taobaoItem.setSpecs(taobaoSpecs);
+
+        // 爬sku信息
+        try {
+            String skuJson = page.regex("skuMap\\s*:.*");
             int start = skuJson.indexOf("{");
             int end = skuJson.lastIndexOf("}");
             skuJson = skuJson.substring(start,end+1);
             try {
                 TaobaoSkuMap skuMap = JsonUtils.fromJson(skuJson, TaobaoSkuMap.class, FieldNamingPolicy.IDENTITY);
+                for (TaobaoSkuMap.Entry<String, TaobaoSku> entry : skuMap.entrySet()) {
+                    entry.getValue().setSpecIds(entry.getKey());
+                }
                 taobaoItem.setSkuMap(skuMap);
             } catch (Exception e) {
                 logger.error("parse skuMap fail.",e);
             }
-
-            //next.add("http://xxxxxx.com");
-            //next为下次迭代
-
-            // 下次爬amp页，获取优惠价
-            String ampUrl = MessageFormat.format( "https://www.taobao.com/list/item-amp/{0}.html",id);
-            CrawlDatum descDatum = new CrawlDatum();
-            descDatum.url(ampUrl);
-            descDatum.type(AMP_PAGE);
-            descDatum.meta("id", id);
-            next.add(descDatum);
-
-            // 下次爬详情URL
-            descDatum = new CrawlDatum();
-            descDatum.url(descHttpUri);
-            descDatum.type(DETAIL_PAGE);
-            descDatum.meta("id", id);
-            next.add(descDatum);
-            // 如果开启了autoParse, 则这里不用手动添加url到next, Crawler会根据设置的规则，自动提取page中的url加入next.
-            // 在此基础上，也可以手动加入url,但是必须符合之前设置的规则，否则会被过滤。
-        } else if (page.matchType(AMP_PAGE)) {
-            // lite page, 包含优惠价
-            //String content = page.html();//page.select("div#artibody", 0).text();
-            String pricePromote = page.selectText("div.price-contianer>div.price");
-            pricePromote = pricePromote.replace("¥", "");
-
-            String id = page.meta("id");
-            TaobaoItem item = items.get(id);
-            if (item == null) {
-                return;
-            }
-            logger.debug("price promote:\n" + pricePromote);
-
-            //TODO: 价格可能是 4130 - 8133的形式，取第一个值即低值
-            Double dPricePromote = parsePrice(pricePromote);
-            item.setPricePromote(dPricePromote);
-
-            //热门描述
-            String hotDesc = page.selectText("div.hd-content");
-            item.setHotDesc(hotDesc);
-        } else if (page.matchType(DETAIL_PAGE)) {
-            // 详情页
-            String id = page.meta("id");
-            TaobaoItem item = items.get(id);
-            if (item == null) {
-                return;
-            }
-
-            // 详情的html内容
-            String desc = page.html(); // var desc='.....'
-            int start = desc.indexOf("'");
-            int end = desc.lastIndexOf("'");
-            desc = desc.substring(start+1,end);
-            item.setDetail(desc);
-
-            //　解析里面的img src=的内容
-            Document doc = Jsoup.parse(desc);
-            Elements imgEles = doc.select("img");
-            List<String> imgSrcs = imgEles.eachAttr("src");
-            //移除不是以jpg结尾的图片,否则格式有?等，会导致上传失败
-            imgSrcs.removeIf(s -> !s.endsWith(".jpg"));
-            for (int i = 0; i < imgSrcs.size(); i++) {
-                imgSrcs.set(i, processImgUrl(imgSrcs.get(i)));
-            }
-            item.setDetailImgs(imgSrcs);
+        } catch (Exception e) {
+            logger.warn("skuMap not found", e);
         }
+
+        //next.add("http://xxxxxx.com");
+        //next为下次迭代
+
+        // 下次爬amp页，获取优惠价
+        String ampUrl = MessageFormat.format("https://www.taobao.com/list/item-amp/{0}.html", id);
+        CrawlDatum descDatum = new CrawlDatum();
+        descDatum.url(ampUrl);
+        descDatum.type(AMP_PAGE);
+        descDatum.meta("id", id);
+        next.add(descDatum);
+
+        // 下次爬详情URL
+        descDatum = new CrawlDatum();
+        descDatum.url(descHttpUri);
+        descDatum.type(DETAIL_PAGE);
+        descDatum.meta("id", id);
+        next.add(descDatum);
+        // 如果开启了autoParse, 则这里不用手动添加url到next, Crawler会根据设置的规则，自动提取page中的url加入next.
+        // 在此基础上，也可以手动加入url,但是必须符合之前设置的规则，否则会被过滤。
     }
 
     /**

@@ -4,6 +4,7 @@ import webcrab.taobao.model.TaobaoItem;
 
 import java.io.*;
 import java.util.Collection;
+import java.util.List;
 
 public class TaobaoItemFileDao {
     private static final String TEMPLATE_FILENAME = "/template/taobao-item.html";
@@ -54,10 +55,17 @@ public class TaobaoItemFileDao {
         try {
             // 拼接详情图片字符串
             StringBuffer sb = new StringBuffer();
-            for (String img: item.getDetailImgs()) {
-                sb.append(img+",");
+            List<String> itemDetailImgs = item.getDetailImgs();
+            String detailImgs = null;
+            if (itemDetailImgs != null) {
+                for (String img : item.getDetailImgs()) {
+                    sb.append(img + ",");
+                }
+                detailImgs = sb.substring(0, Math.max(0, sb.length() - 1));
             }
-            String detailImgs = sb.substring(0, sb.length()-1);
+            if (detailImgs == null) {
+                detailImgs = "";
+            }
 
             String temp = this.htmlTemplate;
             String html = temp.replace("###taobaoUrl###", item.getTaobaoUrl())

@@ -13,6 +13,7 @@ public class SellerProperties {
     private String mobile;
     private String recommendRemark;
     private String extra;
+    private String stock;
 
     public static SellerProperties getInstance() {
         InputStream in = SellerProperties.class.getResourceAsStream("/seller.properties");
@@ -25,6 +26,7 @@ public class SellerProperties {
             sellerProperties.mobile = props.getProperty("mobile");
             sellerProperties.recommendRemark = props.getProperty("recommendRemark");
             sellerProperties.extra = props.getProperty("extra");
+            sellerProperties.stock = props.getProperty("stock");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -73,5 +75,13 @@ public class SellerProperties {
 
     public void setExtra(String extra) {
         this.extra = extra;
+    }
+
+    public String getStock() {
+        return stock;
+    }
+
+    public void setStock(String stock) {
+        this.stock = stock;
     }
 }

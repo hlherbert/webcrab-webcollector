@@ -11,6 +11,7 @@ import webcrab.conf.SellerProperties;
 import webcrab.datatype.TreeNode;
 import webcrab.fangxingou.module.Category;
 import webcrab.fangxingou.module.Product;
+import webcrab.fangxingou.module.Sku;
 import webcrab.fangxingou.module.po.*;
 import webcrab.util.JsonUtils;
 
@@ -344,6 +345,18 @@ public class FangxingouService {
         return true;
     }
 
+    /**
+     * 增加sku
+     */
+    public void skuAdd(Sku sku) {
+        String method = FangxingouApi.SKU_ADD;
+        Response resp = callRemoteMethod(method, sku);
+        try {
+            logger.info("[SKU ADD] " + JsonUtils.prettyJson(resp.body().string()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     /**
      * sku列表
      */

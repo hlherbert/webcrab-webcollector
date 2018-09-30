@@ -4,10 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import webcrab.convert.TaobaoeFxgConvert;
 import webcrab.fangxingou.FangxingouService;
-import webcrab.fangxingou.module.Product;
-import webcrab.fangxingou.module.SpecConstant;
-import webcrab.fangxingou.module.SpecIndex;
-import webcrab.fangxingou.module.Specs;
+import webcrab.fangxingou.module.*;
 import webcrab.fangxingou.module.po.SpecAddResult;
 import webcrab.fangxingou.module.po.SpecListResult;
 import webcrab.storage.ProductRepository;
@@ -100,7 +97,7 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
 
         // 按照一定的规则构造规则名称
         String specName = makeSpecName(outProductId, 0);
-        Specs specsAdded = null;
+        Specs specs = null;
 
 //        int nRetry = 0; //遇到重名的spec次数，如果规格重名了，则后缀增加_1, _2 等
 //        while (productRepository.isSpecNameExist(specName)) {
@@ -112,19 +109,25 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
         if (productRepository.isSpecNameExist(specName)) {
             //规格已经有了，就使用现有规格
             SpecIndex specIndex = productRepository.getSpecIndex(specName);
-            specsAdded = fangxingouService.specDetail(String.valueOf(specIndex.getId())).getData();
+            specs = fangxingouService.specDetail(String.valueOf(specIndex.getId())).getData();
         } else {
             // 规格没有，则创建规格上传
             String specsUpload = TaobaoeFxgConvert.taobao2FxgSpecs(item);
             //System.out.println(specsUpload);
             logger.info("upload spec: " + specsUpload);
             SpecAddResult specAddResult = fangxingouService.specAdd(specsUpload, specName);
-            specsAdded = specAddResult.getData();
+            specs = specAddResult.getData();
         }
 
-        Product product = TaobaoeFxgConvert.taobao2FxgProduct(item, specsAdded);
+        Product product = TaobaoeFxgConvert.taobao2FxgProduct(item, specs);
         fangxingouService.productAdd(product);
         logger.info("product upload: " + JsonUtils.toJson(product));
+
+        List<Sku> skuList = TaobaoeFxgConvert.taobao2FxgSku(item, product, specs);
+        for (Sku sku : skuList) {
+            fangxingouService.skuAdd(sku);
+            logger.info("sku upload: " + JsonUtils.toJson(sku));
+        }
     }
 
     /**

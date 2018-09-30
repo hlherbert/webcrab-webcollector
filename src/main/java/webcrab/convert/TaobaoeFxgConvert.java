@@ -102,7 +102,7 @@ public class TaobaoeFxgConvert {
             props.add(prop);
         }
         product.setProductFormat(String.join("^", props));
-        product.setUsp(null); // TODO: 商品卖点，暂时不设置
+        product.setUsp(item.getHotDesc()); // 商品卖点=热门描述
 
         product.setRecommendRemark(sellerProperties.getRecommendRemark());
         product.setExtra(sellerProperties.getExtra());
@@ -162,5 +162,20 @@ public class TaobaoeFxgConvert {
                 product.setSpecPic(specPic);
             }
         }
+    }
+
+    /**
+     * 淘宝产品中找到sku，并转换为fxg的sku
+     * @param item
+     * @param product
+     * @param specs
+     * @return
+     */
+    public static List<Sku> taobao2FxgSku(TaobaoItem item, Product product, Specs specs) {
+        List<Sku> skuList = new ArrayList<Sku>();
+//        Sku sku = new Sku();
+//        sku.setOutProductId(product.getOutProductId());
+//        sku.setOutSkuId();
+        return skuList;
     }
 }

@@ -54,6 +54,10 @@ public class JsonUtils {
         return gson.fromJson(json, type);
     }
 
+    public static <T> T fromJson(String json, Type type, FieldNamingPolicy fieldNamingPolicy) {
+        return gson.newBuilder().setFieldNamingPolicy(fieldNamingPolicy).create().fromJson(json, type);
+    }
+
     /**
      * 美化json
      *

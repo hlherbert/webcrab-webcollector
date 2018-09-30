@@ -40,6 +40,12 @@ public class TaobaoItem {
     //详情图片集
     private List<String> detailImgs;
 
+    //热门描述
+    private String hotDesc;
+
+    // sku表
+    private Map<String, TaobaoSku> skuMap;
+
     public String getTaobaoUrl() {
         return taobaoUrl;
     }
@@ -142,5 +148,21 @@ public class TaobaoItem {
 
     public void setSpecs(List<TaobaoSpec> specs) {
         this.specs = specs;
+    }
+
+    public String getHotDesc() {
+        return hotDesc;
+    }
+
+    public void setHotDesc(String hotDesc) {
+        this.hotDesc = hotDesc;
+    }
+
+    public Map<String, TaobaoSku> getSkuMap() {
+        return skuMap;
+    }
+
+    public void setSkuMap(Map<String, TaobaoSku> skuMap) {
+        this.skuMap = skuMap;
     }
 }

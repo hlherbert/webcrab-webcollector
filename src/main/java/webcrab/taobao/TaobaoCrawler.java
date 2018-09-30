@@ -4,6 +4,8 @@ import cn.edu.hfut.dmic.webcollector.model.CrawlDatum;
 import cn.edu.hfut.dmic.webcollector.model.CrawlDatums;
 import cn.edu.hfut.dmic.webcollector.model.Page;
 import cn.edu.hfut.dmic.webcollector.plugin.berkeley.BreadthCrawler;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.reflect.TypeToken;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,7 +15,10 @@ import org.slf4j.LoggerFactory;
 import webcrab.conf.InputSeedData;
 import webcrab.taobao.dao.TaobaoItemFileDao;
 import webcrab.taobao.model.TaobaoItem;
+import webcrab.taobao.model.TaobaoSku;
+import webcrab.taobao.model.TaobaoSkuMap;
 import webcrab.taobao.model.TaobaoSpec;
+import webcrab.util.JsonUtils;
 import webcrab.util.URLParser;
 
 import java.text.MessageFormat;
@@ -183,6 +188,18 @@ public class TaobaoCrawler extends BreadthCrawler {
             taobaoItem.setMainSpec(mainSpec);
             taobaoItem.setSpecs(taobaoSpecs);
 
+            // 爬sku信息
+            String skuJson = page.regex("\\s*skuMap\\s*:.*");
+            int start = skuJson.indexOf("{");
+            int end = skuJson.lastIndexOf("}");
+            skuJson = skuJson.substring(start,end+1);
+            try {
+                TaobaoSkuMap skuMap = JsonUtils.fromJson(skuJson, TaobaoSkuMap.class, FieldNamingPolicy.IDENTITY);
+                taobaoItem.setSkuMap(skuMap);
+            } catch (Exception e) {
+                logger.error("parse skuMap fail.",e);
+            }
+
             //next.add("http://xxxxxx.com");
             //next为下次迭代
 
@@ -218,6 +235,10 @@ public class TaobaoCrawler extends BreadthCrawler {
             //TODO: 价格可能是 4130 - 8133的形式，取第一个值即低值
             Double dPricePromote = parsePrice(pricePromote);
             item.setPricePromote(dPricePromote);
+
+            //热门描述
+            String hotDesc = page.selectText("div.hd-content");
+            item.setHotDesc(hotDesc);
         } else if (page.matchType(DETAIL_PAGE)) {
             // 详情页
             String id = page.meta("id");

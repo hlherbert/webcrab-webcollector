@@ -6,3 +6,4 @@ id: ###id###
 库存-stock: ###stock###
 基本信息-basicInfo: ###basicInfo###
 详情-detailImgs: ###detailImgs###
+主规格图片-mainSpecPics:  ###mainSpecPics###

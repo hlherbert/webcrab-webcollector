@@ -222,6 +222,28 @@ public class FangxingouService {
     }
 
     /**
+     * 删除规格
+     *
+     * @return 是否删除成功
+     */
+    public boolean specDel(String specId) {
+        String method = FangxingouApi.SPEC_DEL;
+        SpecDelParam param = new SpecDelParam();
+        param.setId(specId);
+        Response rst = callRemoteMethod(method, param);
+        try {
+            String str = rst.body().string();
+            if (str.contains("true")) {
+                logger.info("spec " + specId + " deleted.");
+                return true;
+            }
+        } catch (IOException e) {
+            logger.error("specDel error.", e);
+        }
+        return false;
+    }
+
+    /**
      * 查询商品分类
      *
      * @param cid 商品父分类id,根据父id可以获取子分类，一级分类cid=0,必填。
@@ -302,6 +324,28 @@ public class FangxingouService {
         ProductAddResult rst = callRemoteMethod(method, param, ProductAddResult.class);
         logger.info(JsonUtils.toJson(rst));
         return rst;
+    }
+
+    /**
+     * 删除商品
+     *
+     * @return 是否删除成功
+     */
+    public boolean productDel(String outProductId) {
+        String method = FangxingouApi.PRODUCT_DEL;
+        ProductDelParam param = new ProductDelParam();
+        param.setOutProductId(outProductId);
+        Response rst = callRemoteMethod(method, param);
+        try {
+            String str = rst.body().string();
+            if (str.contains("true")) {
+                logger.info("product " + outProductId + " deleted.");
+                return true;
+            }
+        } catch (IOException e) {
+            logger.error("productDel error.", e);
+        }
+        return false;
     }
 
     /**

@@ -67,6 +67,7 @@ public class TaobaoeFxgConvert {
         // 最多5张
         List<String> picsLimit = item.getPics().subList(0, PRODUCT_PIC_LIMIT);
         String pics = String.join("|", picsLimit);
+
         String descImgs = String.join("|", item.getDetailImgs());
 
         product.setPic(pics);
@@ -79,24 +80,28 @@ public class TaobaoeFxgConvert {
         if (item.getPricePromote() != null) {
             product.setDiscountPrice(String.valueOf((long) (item.getPricePromote() * 100)));
         }
-        product.setCosRatio("0"); //佣金率 TODO:不知道佣金怎么填,先填0
+        product.setCosRatio("0"); //佣金率 TODO:佣金先填0
 
         //TODO: 现在不知道原商品分类，设置为其他
         product.setFirstCid(CategoryEnum.OTHER_CID1.getStrId());
         product.setSecondCid(CategoryEnum.OTHER_CID2.getStrId());
         product.setThirdCid(CategoryEnum.OTHER_CID3.getStrId());
 
-        //TODO: 支付方式不确定，暂时只支持在线支付
+        // 支付方式，只支持在线支付
         product.setPayType(PayTypeEnum.ONLINE.getStrVal());
         product.setSpecId(String.valueOf(specs.getId()));
 
         // 将规格设置到放心购产品里面，并解析出主规格和图片
         extractTaobaoSpecs2FxgProduct(item, specs, product);
 
+        // 移动电话
         product.setMobile(sellerProperties.getMobile());
 
         //读取属性
         Map<String, String> basicInfoMap = item.getBasicInfoMap();
+        // 设置品牌
+        basicInfoMap.put("品牌", sellerProperties.getBrand());
+
         List<String> props = new ArrayList<>();
         for (Map.Entry<String, String> entry : basicInfoMap.entrySet()) {
             String propName = entry.getKey();

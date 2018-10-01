@@ -235,7 +235,7 @@ public class TaobaoCrawler extends BreadthCrawler {
                 childSpec.setId(childSpecId);
                 childSpec.setName(childName);
 
-                String style = childEle.attr("style");
+                String style = childEle.selectFirst("a").attr("style");
                 if (style != null && !style.isEmpty()) {
                     int start = style.indexOf("url(//") + "url(//".length();
                     int end = style.indexOf("_30x30.jpg)");
@@ -266,7 +266,7 @@ public class TaobaoCrawler extends BreadthCrawler {
                 logger.error("parse skuMap fail.",e);
             }
         } catch (Exception e) {
-            logger.warn("=======skuMap not found========", e);
+            logger.warn("=======skuMap not found, create default sku========", e);
         }
 
         //next.add("http://xxxxxx.com");
@@ -349,7 +349,7 @@ public class TaobaoCrawler extends BreadthCrawler {
     public void run() throws Exception {
         TaobaoItemFileDao dao = new TaobaoItemFileDao();
         TaobaoCrawler crawler = new TaobaoCrawler("taobaoCraw", false, dao);
-        crawler.setThreads(4);//线程数=CPU内核数
+        crawler.setThreads(10);//线程数=CPU内核数
         crawler.getConf().setExecuteInterval(1000);//下次爬取前的等待时间ms
         //crawler.getConf().setTopN(100);
         //crawler.setResumable(true);

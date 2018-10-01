@@ -16,6 +16,7 @@ import webcrab.taobao.model.TaobaoItem;
 import webcrab.taobao.model.TaobaoSku;
 import webcrab.util.JsonUtils;
 
+import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -39,11 +40,10 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
      * 为淘宝商品取规格名
      *
      * @param outProductId 产品淘宝ID
-     * @param nRetry       重试次数
      * @return {PREFIX}_{outProductId}_{nRetry}
      */
-    private static String makeSpecName(String outProductId, int nRetry) {
-        return SPEC_PREFIX + outProductId + "_" + nRetry;
+    private static String makeSpecName(String outProductId) {
+        return SPEC_PREFIX + outProductId;
     }
 
 
@@ -119,6 +119,28 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
             }
         }
 
+        // 标题长度大于30个中文的，无法上传
+        try {
+            int titleLen = item.getTitle().getBytes("GB2312").length;
+            if (titleLen > 60) {
+                logger.warn("invalid item: title length > 60");
+                return false;
+            }
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+
+        // 缺少轮播图或详情图的，禁止上传
+        if (item.getPics() == null || item.getPics().isEmpty()) {
+            logger.warn("invalid item: pics is null");
+            return false;
+        }
+        if (item.getDetailImgs() == null || item.getDetailImgs().isEmpty()) {
+            logger.warn("invalid item: detailImages is null");
+            return false;
+        }
+
         return true;
     }
 
@@ -133,7 +155,7 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
         boolean isProductExist = fangxingouService.isProductExist(outProductId);
 
         // 按照一定的规则构造规则名称
-        String specName = makeSpecName(outProductId, 0);
+        String specName = makeSpecName(outProductId);
         Specs specs = null;
 
 //        int nRetry = 0; //遇到重名的spec次数，如果规格重名了，则后缀增加_1, _2 等
@@ -166,23 +188,44 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
         }
 
         List<Sku> skuList = TaobaoeFxgConvert.taobao2FxgSku(item, product, specs);
+
+        // 存入当前sku列表
         List<SkuListResultData> currentSkuListRst = fangxingouService.skuList(outProductId).getData();
         Map<String, SkuListResultData> currentSkus = new HashMap<>();
         if (currentSkuListRst != null) {
             for (SkuListResultData sku : currentSkuListRst) {
-                currentSkus.put(String.valueOf(sku.getId()), sku);
+                currentSkus.put(String.valueOf(sku.getOutSkuId()), sku);
             }
         }
 
         for (Sku sku : skuList) {
-            SkuListResultData skuCur = currentSkus.get(sku.getOutSkuId());
-            if (skuCur != null) {
+            if (currentSkus.get(sku.getOutSkuId()) != null) {
                 logger.warn("sku exists " + sku.getOutSkuId());
-                logger.info(JsonUtils.toJson(skuCur));
                 continue;
             }
             fangxingouService.skuAdd(sku);
             logger.info("sku upload: " + JsonUtils.toJson(sku));
+        }
+    }
+
+    /**
+     * 删除上传到放心购的商品和规格
+     */
+    public void stepDeleteFxgProducts() {
+        List<TaobaoItem> items = productRepository.getItems();
+        if (items.isEmpty()) {
+            return;
+        }
+        for (TaobaoItem item : items) {
+            String outProductId = item.getId();
+            fangxingouService.productDel(outProductId);
+
+            String specName = makeSpecName(outProductId);
+            SpecIndex specIndex = productRepository.getSpecIndex(specName);
+            if (specIndex != null) {
+                String specId = String.valueOf(specIndex.getId());
+                fangxingouService.specDel(specId);
+            }
         }
     }
 
@@ -207,9 +250,10 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
 
     @Override
     public void doAllSteps() {
-        //stepGetFxgProducts();
-        //stepCrawItemsAndSave();
-        //stepUploadToFxg();
-        stepDebug();
+        stepGetFxgProducts();
+        stepCrawItemsAndSave();
+        //stepDeleteFxgProducts();
+        stepUploadToFxg();
+        //stepDebug();
     }
 }

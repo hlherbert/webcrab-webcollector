@@ -21,6 +21,11 @@ public interface FangxingouApi {
     String SPEC_LIST = "spec/list";
 
     /**
+     * 删除规格
+     */
+    String SPEC_DEL = "/spec/del";
+
+    /**
      * 获取商品分类
      */
     String PRODUCT_GET_GOODS_CATEGORY = "product/getGoodsCategory";
@@ -29,6 +34,11 @@ public interface FangxingouApi {
      * 添加商品
      */
     String PRODUCT_ADD = "product/add";
+
+    /**
+     * 删除商品
+     */
+    String PRODUCT_DEL = "product/del";
 
     /**
      * 获取商品列表

@@ -1,0 +1,1 @@
+javapackager -deploy -native exe -outdir nativebuild -srcdir build\libs -appclass webcrab.Main -name Webcrab -outfile Webcrab

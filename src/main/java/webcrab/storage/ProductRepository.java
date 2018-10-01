@@ -87,4 +87,5 @@ public class ProductRepository {
     public SpecIndex getSpecIndex(String specName) {
         return specIndexMap.get(specName);
     }
+
 }

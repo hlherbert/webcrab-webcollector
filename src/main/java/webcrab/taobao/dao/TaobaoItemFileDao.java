@@ -1,13 +1,14 @@
 package webcrab.taobao.dao;
 
 import webcrab.taobao.model.TaobaoItem;
+import webcrab.taobao.model.TaobaoSpec;
 
 import java.io.*;
 import java.util.Collection;
 import java.util.List;
 
 public class TaobaoItemFileDao {
-    private static final String TEMPLATE_FILENAME = "/template/taobao-item.html";
+    private static final String TEMPLATE_FILENAME = "/template/taobao-item.txt";
     private FileWriter writer;
 
     //输出html模板的内容
@@ -67,6 +68,19 @@ public class TaobaoItemFileDao {
                 detailImgs = "";
             }
 
+            // 拼接主规格图片字符串
+            TaobaoSpec mainSpec = item.getMainSpec();
+            String mainSpecPics = "";
+            if (mainSpec != null) {
+                List<TaobaoSpec> childSpecs = mainSpec.getChildSpecs();
+                sb = new StringBuffer();
+                for (TaobaoSpec childSpec : childSpecs) {
+                    sb.append(childSpec.getImg() + ",");
+                }
+                sb.deleteCharAt(sb.length() - 1);
+                mainSpecPics = sb.toString();
+            }
+
             String temp = this.htmlTemplate;
             String html = temp.replace("###taobaoUrl###", item.getTaobaoUrl())
                     .replace("###id###", item.getId())
@@ -75,7 +89,8 @@ public class TaobaoItemFileDao {
                     .replace("###pricePromote###", String.valueOf(item.getPricePromote()))
                     .replace("###stock###", String.valueOf(item.getStock()))
                     .replace("###basicInfo###", item.getBasicInfo())
-                    .replace("###detailImgs###", detailImgs);
+                    .replace("###detailImgs###", detailImgs)
+                    .replace("###mainSpecPics###", mainSpecPics);
 
             File outfile = new File(filename);
             fw = new FileWriter(outfile);
@@ -105,7 +120,7 @@ public class TaobaoItemFileDao {
         }
 
         for (TaobaoItem item: items) {
-            String filename = outDir+"/"+item.getId()+".html";
+            String filename = outDir + "/" + item.getId() + ".txt";
             this.writeHtmlPage(item, filename);
         }
     }

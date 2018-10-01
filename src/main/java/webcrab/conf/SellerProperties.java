@@ -10,6 +10,7 @@ import java.util.Properties;
 public class SellerProperties {
     private String appkey;
     private String appsecret;
+    private String brand;
     private String mobile;
     private String recommendRemark;
     private String extra;
@@ -23,6 +24,7 @@ public class SellerProperties {
             props.load(in);
             sellerProperties.appkey = props.getProperty("appkey");
             sellerProperties.appsecret = props.getProperty("appsecret");
+            sellerProperties.brand = props.getProperty("brand");
             sellerProperties.mobile = props.getProperty("mobile");
             sellerProperties.recommendRemark = props.getProperty("recommendRemark");
             sellerProperties.extra = props.getProperty("extra");
@@ -47,6 +49,14 @@ public class SellerProperties {
 
     public String getAppsecret() {
         return appsecret;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
     }
 
     public void setAppsecret(String appsecret) {

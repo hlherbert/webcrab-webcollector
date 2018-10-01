@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import webcrab.convert.TaobaoeFxgConvert;
 import webcrab.fangxingou.FangxingouService;
 import webcrab.fangxingou.module.*;
+import webcrab.fangxingou.module.po.SkuListResult;
 import webcrab.fangxingou.module.po.SkuListResultData;
 import webcrab.fangxingou.module.po.SpecAddResult;
 import webcrab.fangxingou.module.po.SpecListResult;
@@ -190,19 +191,25 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
      */
     public void stepDebug() {
         //详细商品
-        String outProductId = "561115473106";
+        String outProductId = "577486537533";
         fangxingouService.productDetail(outProductId);
 
-        String specId = "3368417";
-        Specs specs = fangxingouService.specDetail(specId).getData();
-        logger.info(JsonUtils.toPrettyJson(specs));
+//        String specId = "3368417";
+//        Specs specs = fangxingouService.specDetail(specId).getData();
+//        logger.info(JsonUtils.toPrettyJson(specs));
+
+        SkuListResult skuListRst = fangxingouService.skuList(outProductId);
+        List<SkuListResultData> skulst = skuListRst.getData();
+        for (SkuListResultData sku : skulst) {
+            logger.info(JsonUtils.toPrettyJson(sku));
+        }
     }
 
     @Override
     public void doAllSteps() {
-        stepGetFxgProducts();
-        stepCrawItemsAndSave();
-        stepUploadToFxg();
-        //stepDebug();
+        //stepGetFxgProducts();
+        //stepCrawItemsAndSave();
+        //stepUploadToFxg();
+        stepDebug();
     }
 }

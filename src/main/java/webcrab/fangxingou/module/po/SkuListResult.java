@@ -1,6 +1,6 @@
 package webcrab.fangxingou.module.po;
 
-import java.util.ArrayList;
+import java.util.List;
 
-public class SkuListResult extends Result<ArrayList<SkuListResultData>> {
+public class SkuListResult extends Result<List<SkuListResultData>> {
 }

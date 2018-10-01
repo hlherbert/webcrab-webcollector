@@ -11,12 +11,11 @@ import webcrab.fangxingou.module.po.SpecAddResult;
 import webcrab.fangxingou.module.po.SpecListResult;
 import webcrab.storage.ProductRepository;
 import webcrab.taobao.TaobaoCrawler;
+import webcrab.taobao.TaobaoItemChecker;
 import webcrab.taobao.dao.TaobaoItemFileDao;
 import webcrab.taobao.model.TaobaoItem;
-import webcrab.taobao.model.TaobaoSku;
 import webcrab.util.JsonUtils;
 
-import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +34,7 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
     private TaobaoCrawler taobaoCrawler;
     private ProductRepository productRepository = ProductRepository.getInstance();
     private FangxingouService fangxingouService = FangxingouService.getInstance();
+    private TaobaoItemChecker checker = TaobaoItemChecker.getInstance();
 
     /**
      * 为淘宝商品取规格名
@@ -101,47 +101,7 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
      * @return
      */
     private boolean checkItemValid(TaobaoItem item) {
-        // sku中descIds超过3级的，无法上传SKU
-        Map<String, TaobaoSku> skuMap = item.getSkuMap();
-        if (skuMap != null) {
-            for (TaobaoSku sku : skuMap.values()) {
-                char[] chars = sku.getSpecIds().toCharArray();
-                int nSpecIds = 0;
-                for (char c : chars) {
-                    if (c == ':') {
-                        nSpecIds++;
-                    }
-                }
-                if (nSpecIds > 3) {
-                    logger.warn("invalid item: sku specIds > 3.  specIds=" + sku.getSpecIds());
-                    return false;
-                }
-            }
-        }
-
-        // 标题长度大于30个中文的，无法上传
-        try {
-            int titleLen = item.getTitle().getBytes("GB2312").length;
-            if (titleLen > 60) {
-                logger.warn("invalid item: title length > 60");
-                return false;
-            }
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-
-
-        // 缺少轮播图或详情图的，禁止上传
-        if (item.getPics() == null || item.getPics().isEmpty()) {
-            logger.warn("invalid item: pics is null");
-            return false;
-        }
-        if (item.getDetailImgs() == null || item.getDetailImgs().isEmpty()) {
-            logger.warn("invalid item: detailImages is null");
-            return false;
-        }
-
-        return true;
+        return checker.checkItemValid(item);
     }
 
     private void uploadTaobaoItemToFxg(TaobaoItem item) {
@@ -200,7 +160,7 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
 
         for (Sku sku : skuList) {
             if (currentSkus.get(sku.getOutSkuId()) != null) {
-                logger.warn("sku exists " + sku.getOutSkuId());
+                logger.warn("sku exists " + sku.getOutSkuId() + ". do not upload.");
                 continue;
             }
             fangxingouService.skuAdd(sku);
@@ -252,8 +212,8 @@ public class CrawTaobaoUploadFxgPipeline implements Pipeline {
     public void doAllSteps() {
         stepGetFxgProducts();
         stepCrawItemsAndSave();
-        //stepDeleteFxgProducts();
+        stepDeleteFxgProducts();
         stepUploadToFxg();
-        //stepDebug();
+        stepDebug();
     }
 }

@@ -8,10 +8,7 @@ import webcrab.taobao.model.TaobaoItem;
 import webcrab.taobao.model.TaobaoSku;
 import webcrab.taobao.model.TaobaoSpec;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 淘宝转放心购
@@ -27,6 +24,8 @@ public class TaobaoeFxgConvert {
      * 卖家信息配置
      */
     private static SellerProperties sellerProperties = SellerProperties.getInstance();
+
+    private static Random random = new Random();
 
     /**
      * 淘宝规格转放心购规格
@@ -112,7 +111,7 @@ public class TaobaoeFxgConvert {
         product.setProductFormat(String.join("^", props));
         product.setUsp(item.getHotDesc()); // 商品卖点=热门描述
 
-        product.setRecommendRemark(sellerProperties.getRecommendRemark());
+        product.setRecommendRemark(getRandomRecommendRemark());
         product.setExtra(sellerProperties.getExtra());
 
         return product;
@@ -288,5 +287,16 @@ public class TaobaoeFxgConvert {
         }
 
         return skuList;
+    }
+
+    /**
+     * 获取一个随机推荐语
+     *
+     * @return 一个随机推荐语
+     */
+    private static String getRandomRecommendRemark() {
+        List<String> remarks = sellerProperties.getRecommendRemarks();
+        int i = random.nextInt(remarks.size());
+        return remarks.get(i);
     }
 }

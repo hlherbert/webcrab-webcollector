@@ -266,7 +266,7 @@ public class TaobaoCrawler extends BreadthCrawler {
                 logger.error("parse skuMap fail.",e);
             }
         } catch (Exception e) {
-            logger.warn("=======skuMap not found, create default sku========", e);
+            logger.warn(MessageFormat.format("=======item {0}: skuMap not found, create default sku========", taobaoItem.getId()));
         }
 
         //next.add("http://xxxxxx.com");

@@ -2,6 +2,9 @@ package webcrab.conf;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -13,6 +16,7 @@ public class SellerProperties {
     private String brand;
     private String mobile;
     private String recommendRemark;
+    private List<String> recommendRemarks;
     private String extra;
     private String stock;
 
@@ -26,7 +30,19 @@ public class SellerProperties {
             sellerProperties.appsecret = props.getProperty("appsecret");
             sellerProperties.brand = props.getProperty("brand");
             sellerProperties.mobile = props.getProperty("mobile");
+
             sellerProperties.recommendRemark = props.getProperty("recommendRemark");
+            String remarkStr = sellerProperties.getRecommendRemark();
+            if (remarkStr == null) {
+                return null;
+            }
+            String[] remarks = remarkStr.split("\\|");
+            if (remarks == null || remarks.length == 0) {
+                return null;
+            }
+            sellerProperties.recommendRemarks = new ArrayList<>();
+            Collections.addAll(sellerProperties.recommendRemarks, remarks);
+
             sellerProperties.extra = props.getProperty("extra");
             sellerProperties.stock = props.getProperty("stock");
         } catch (IOException e) {
@@ -77,6 +93,14 @@ public class SellerProperties {
 
     public void setRecommendRemark(String recommendRemark) {
         this.recommendRemark = recommendRemark;
+    }
+
+    public List<String> getRecommendRemarks() {
+        return recommendRemarks;
+    }
+
+    public void setRecommendRemarks(List<String> recommendRemarks) {
+        this.recommendRemarks = recommendRemarks;
     }
 
     public String getExtra() {

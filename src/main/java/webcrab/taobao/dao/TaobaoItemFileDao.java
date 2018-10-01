@@ -99,6 +99,11 @@ public class TaobaoItemFileDao {
      * @param outDir 输出路径
      */
     public void writeHtmlPages(Collection<TaobaoItem> items, String outDir) {
+        File outDirFile = new File(outDir);
+        if (!outDirFile.exists()) {
+            outDirFile.mkdir();
+        }
+
         for (TaobaoItem item: items) {
             String filename = outDir+"/"+item.getId()+".html";
             this.writeHtmlPage(item, filename);

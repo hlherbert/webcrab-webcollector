@@ -349,8 +349,8 @@ public class TaobaoCrawler extends BreadthCrawler {
     public void run() throws Exception {
         TaobaoItemFileDao dao = new TaobaoItemFileDao();
         TaobaoCrawler crawler = new TaobaoCrawler("taobaoCraw", false, dao);
-        crawler.setThreads(50);
-        //crawler.getConf().setExecuteInterdval(1000);//下次爬取前的等待时间ms
+        crawler.setThreads(4);//线程数=CPU内核数
+        crawler.getConf().setExecuteInterval(1000);//下次爬取前的等待时间ms
         //crawler.getConf().setTopN(100);
         //crawler.setResumable(true);
         /*start crawl with depth of 4*/

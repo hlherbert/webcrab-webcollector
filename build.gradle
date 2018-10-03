@@ -1,15 +1,4 @@
-buildscript {
-    dependencies {
-        classpath group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2'
-    }
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-}
-
 apply plugin: 'java'
-apply plugin: 'javafx-gradle-plugin'
 
 group 'org.hl'
 version '1.0'
@@ -42,13 +31,4 @@ jar {
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     }
-}
-
-// 打包成exe
-jfx {
-    // minimal requirement for jfxJar-task
-    mainClass = 'webcrab.Main'
-
-    // minimal requirement for jfxNative-task
-    vendor = 'HuangLi'
 }

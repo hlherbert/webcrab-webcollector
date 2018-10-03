@@ -1,15 +1,25 @@
-plugins {
-    id 'java'
+buildscript {
+    dependencies {
+        classpath group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2'
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
 }
 
-group 'org.hl'
-version '1.0-SNAPSHOT'
+apply plugin: 'java'
+apply plugin: 'javafx-gradle-plugin'
 
-sourceCompatibility = 1.8
-//设置文件编码
-[compileJava, javadoc, compileTestJava]*.options*.encoding = 'UTF-8'
+group 'org.hl'
+version '1.0'
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -20,7 +30,6 @@ dependencies {
     //compile('org.springframework.boot:spring-boot-starter-web:2.0.0.RELEASE')
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
-
 }
 
 // jar打包成可执行JAR
@@ -33,4 +42,13 @@ jar {
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     }
+}
+
+// 打包成exe
+jfx {
+    // minimal requirement for jfxJar-task
+    mainClass = 'webcrab.Main'
+
+    // minimal requirement for jfxNative-task
+    vendor = 'HuangLi'
 }

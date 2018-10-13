@@ -38,6 +38,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.text.Text;
+import webcrab.core.pipeline.CrawTaobaoUploadFxgPipeline;
+import webcrab.core.pipeline.Pipeline;
 
 public class FxAppController {
     @FXML
@@ -48,6 +50,8 @@ public class FxAppController {
 
     @FXML
     private ProgressBar prsCraw;
+
+    private Pipeline crawPipeline = new CrawTaobaoUploadFxgPipeline();
 
     public FxAppController() {
 
@@ -60,7 +64,13 @@ public class FxAppController {
         Task<Void> progressTask = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                for (int i = 0; i < 100; i++) {
+                for (int i = 0; i < 50; i++) {
+                    Thread.sleep(50);
+                    updateProgress(i + 1, 100);
+                    updateMessage("Loading..." + (i + 1) + "%");
+                }
+                crawPipeline.doAllSteps();
+                for (int i = 50; i < 100; i++) {
                     Thread.sleep(50);
                     updateProgress(i + 1, 100);
                     updateMessage("Loading..." + (i + 1) + "%");

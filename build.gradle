@@ -22,7 +22,7 @@ dependencies {
 }
 
 // jar打包成可执行JAR
-def mainClassName = "webcrab.Main"
+def mainClassName = "webcrab.gui.fx.FxApp"
 jar {
     manifest {
         attributes "Main-Class": "$mainClassName"

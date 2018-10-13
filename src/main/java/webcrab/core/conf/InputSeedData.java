@@ -1,9 +1,9 @@
 package webcrab.core.conf;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,10 +11,9 @@ import java.util.stream.Collectors;
  * 种子url
  */
 public class InputSeedData {
-    private final String FILE_NAME = "/input_seed.txt";
+    private static Logger logger = LoggerFactory.getLogger(InputSeedData.class);
     protected static InputSeedData instance = new InputSeedData();
     private List<String> seeds;
-
 
     public static InputSeedData getInstance() {
         return instance;
@@ -28,12 +27,13 @@ public class InputSeedData {
         InputStreamReader ir = null;
         BufferedReader br = null;
         try {
-            InputStream in = SellerProperties.class.getResourceAsStream(FILE_NAME);
+            InputStream in = new FileInputStream(new File(System.getProperty("user.dir") + File.separator + "conf" + File.separator + "input_seed.txt"));
             ir = new InputStreamReader(in);
             br = new BufferedReader(ir);
             seeds = br.lines().filter(s -> !s.startsWith("#")).collect(Collectors.toList());
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("请在当前目录下创建并配置conf/input_seed.txt文件.", e);
         } finally {
             if (br != null) {
                 try {

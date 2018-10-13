@@ -1,7 +1,9 @@
 package webcrab.core.conf;
 
-import java.io.IOException;
-import java.io.InputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -11,6 +13,8 @@ import java.util.Properties;
  * 卖家属性，从配置文件seller.properties中读取
  */
 public class SellerProperties {
+    private static Logger logger = LoggerFactory.getLogger(SellerProperties.class);
+
     private String appkey;
     private String appsecret;
     private String brand;
@@ -21,7 +25,13 @@ public class SellerProperties {
     private String stock;
 
     public static SellerProperties getInstance() {
-        InputStream in = SellerProperties.class.getResourceAsStream("/seller.properties");
+        InputStream in = null;
+        try {
+            in = new FileInputStream(new File(System.getProperty("user.dir") + File.separator + "conf" + File.separator + "seller.properties"));
+        } catch (FileNotFoundException e) {
+            logger.error("请在当前目录下创建并配置conf/seller.properties文件.", e);
+            return null;
+        }
         Properties props = new Properties();
         SellerProperties sellerProperties = new SellerProperties();
         try {

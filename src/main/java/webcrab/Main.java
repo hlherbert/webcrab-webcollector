@@ -1,7 +1,7 @@
 package webcrab;
 
-import webcrab.pipeline.CrawTaobaoUploadFxgPipeline;
-import webcrab.pipeline.Pipeline;
+import webcrab.core.pipeline.CrawTaobaoUploadFxgPipeline;
+import webcrab.core.pipeline.Pipeline;
 
 public class Main {
 

@@ -12,6 +12,17 @@ repositories {
     mavenCentral()
 }
 
+buildscript{
+    repositories{
+        mavenCentral()
+    }
+    dependencies{
+        classpath 'net.sf.proguard:proguard-gradle:6.0.3'
+    }
+}
+
+
+
 dependencies {
     compile 'cn.edu.hfut.dmic.webcollector:WebCollector:2.73-alpha'
     compile 'com.squareup.retrofit2:retrofit:2.0.2'
@@ -31,4 +42,32 @@ jar {
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     }
+
+    // 排除重复的文件，防止对proguard造成困扰
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude('META-INF/maven/**')
 }
+
+// 将依赖的jar包导出，供proguard参考
+def dependLibDir = 'build/dependlib'
+task copyDependLibs(type:Copy) {
+    from configurations.runtime
+    // 目标位置
+    into "$dependLibDir"
+}
+
+// 代码混淆
+task proguard(type: proguard.gradle.ProGuardTask) {
+    ext{
+        injar = jar.archivePath
+        outJar= "dist/myapp-proguard.jar"
+    }
+
+    // Specify the input jars, output jars, and library jars.
+    injars  injar
+    outjars outJar
+    configuration 'proguard.pro'
+}
+
+copyDependLibs.dependsOn jar
+proguard.dependsOn copyDependLibs

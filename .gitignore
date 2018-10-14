@@ -3,6 +3,7 @@
 log/
 bin/
 build/
+dist/
 nativebuild/
 *.log
 

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import webcrab.core.taobao.model.TaobaoItem;
 import webcrab.core.taobao.model.TaobaoSku;
+import webcrab.core.util.CharsetConstant;
 
 import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
@@ -62,7 +63,7 @@ public class TaobaoItemChecker {
 
         // 标题长度大于30个中文的，无法上传
         try {
-            int titleLen = item.getTitle().getBytes("GB2312").length;
+            int titleLen = item.getTitle().getBytes(CharsetConstant.GB2312).length;
             if (titleLen > 60) {
                 logger.warn(err("title length > 60", item));
                 return false;

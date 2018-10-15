@@ -16,7 +16,7 @@ public class URLParser {
 	protected String baseUrl;
 	protected String queryString;
 	protected String label;
-	protected String charset = "utf-8";
+	protected String charset = CharsetConstant.UTF8;
  
 	protected boolean compiled = false;
 	public Map<String, String> parsedParams;
@@ -89,27 +89,5 @@ public class URLParser {
 		this.parsedParams.put(name, value);
  
 		return this;
-	}
-
- 
-	public static void main(String[] args) {
-		try {
- 
-			System.err.println(
-					fromURL("https://www.google.com/search?q=test&hl=zh_cn&oq=test&gs_l=heirloom-serp.3...38011332.38012012.0.38012235.4.4.0.0.0.0.0.0..0.0.msedr...0...1ac.1.34.heirloom-serp..4.0.0.1q6YK2r8vHI")
-							.compile().getParameter("gs_l"));
- 
-			System.out.println(
-					fromURL("https://www.google.com/search?q=test&hl=zh_cn&oq=test&gs_l=heirloom-serp.3...38011332.38012012.0.38012235.4.4.0.0.0.0.0.0..0.0.msedr...0...1ac.1.34.heirloom-serp..4.0.0.1q6YK2r8vHI")
-							.getParameter("q"));
- 
-			System.out.println(
-					fromURL("https://www.google.com/search?q=test&hl=zh_cn&oq=test&gs_l=heirloom-serp.3...38011332.38012012.0.38012235.4.4.0.0.0.0.0.0..0.0.msedr...0...1ac.1.34.heirloom-serp..4.0.0.1q6YK2r8vHI")
-							.compile().getParameter("q"));
- 
-
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
 	}
 }

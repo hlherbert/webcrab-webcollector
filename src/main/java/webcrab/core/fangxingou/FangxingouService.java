@@ -13,6 +13,7 @@ import webcrab.core.fangxingou.model.Category;
 import webcrab.core.fangxingou.model.Product;
 import webcrab.core.fangxingou.model.Sku;
 import webcrab.core.fangxingou.model.po.*;
+import webcrab.core.util.CharsetConstant;
 import webcrab.core.util.JsonUtils;
 
 import java.io.IOException;
@@ -83,7 +84,7 @@ public class FangxingouService {
 //
         String md5 = "";
         try {
-            md5 = MD5Utils.md5(secretInfo, "UTF-8");
+            md5 = MD5Utils.md5(secretInfo, CharsetConstant.UTF8);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {

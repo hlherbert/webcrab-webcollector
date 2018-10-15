@@ -2,6 +2,7 @@ package webcrab.core.taobao.dao;
 
 import webcrab.core.taobao.model.TaobaoItem;
 import webcrab.core.taobao.model.TaobaoSpec;
+import webcrab.core.util.CharsetConstant;
 
 import java.io.*;
 import java.util.Collection;
@@ -9,7 +10,7 @@ import java.util.List;
 
 public class TaobaoItemFileDao {
     private static final String TEMPLATE_FILENAME = "/template/taobao-item.txt";
-    private FileWriter writer;
+    private OutputStreamWriter writer;
 
     //输出html模板的内容
     private String htmlTemplate;
@@ -19,7 +20,7 @@ public class TaobaoItemFileDao {
     }
 
     public void open(String filename) throws Exception {
-        writer = new FileWriter(filename);
+        writer = new OutputStreamWriter(new FileOutputStream(filename), CharsetConstant.UTF8);
     }
     public void close(){
         try {
@@ -52,7 +53,7 @@ public class TaobaoItemFileDao {
      * @param filename 文件名
      */
     public void writeHtmlPage(TaobaoItem item, String filename) {
-        FileWriter fw = null;
+        OutputStreamWriter fw = null;
         try {
             // 拼接详情图片字符串
             StringBuffer sb = new StringBuffer();
@@ -93,7 +94,7 @@ public class TaobaoItemFileDao {
                     .replace("###mainSpecPics###", mainSpecPics);
 
             File outfile = new File(filename);
-            fw = new FileWriter(outfile);
+            fw = new OutputStreamWriter(new FileOutputStream(outfile), CharsetConstant.UTF8);
             fw.write(html);
         } catch (IOException e) {
             e.printStackTrace();
@@ -134,7 +135,7 @@ public class TaobaoItemFileDao {
         StringBuffer buf = new StringBuffer();
         try {
             InputStream ins = this.getClass().getResourceAsStream(TEMPLATE_FILENAME);
-            ir = new InputStreamReader(ins);
+            ir = new InputStreamReader(ins, CharsetConstant.UTF8);
             br = new BufferedReader(ir);
 
             String line = null;

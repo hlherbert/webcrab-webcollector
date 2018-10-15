@@ -1,4 +1,4 @@
-package webcrab.core.fangxingou.module.po;
+package webcrab.core.fangxingou.model.po;
 
 /**
  * sku列表参数

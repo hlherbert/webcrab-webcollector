@@ -1,13 +1,16 @@
-package webcrab.core.fangxingou.module;
+package webcrab.core.fangxingou.model;
 
 /**
- * 产品分类
+ * 规格索引
  */
-public class Category {
-    /** id */
+public class SpecIndex {
+    /**
+     * 规格ID
+     */
     private Long id;
-
-    /** 名称 */
+    /**
+     * 规格名称
+     */
     private String name;
 
     public Long getId() {

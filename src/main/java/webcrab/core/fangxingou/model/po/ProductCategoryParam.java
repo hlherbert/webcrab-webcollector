@@ -1,4 +1,4 @@
-package webcrab.core.fangxingou.module.po;
+package webcrab.core.fangxingou.model.po;
 
 /**
  * 商品分类查询参数

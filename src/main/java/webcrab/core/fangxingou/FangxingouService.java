@@ -9,10 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import webcrab.core.conf.SellerProperties;
 import webcrab.core.datatype.TreeNode;
-import webcrab.core.fangxingou.module.Category;
-import webcrab.core.fangxingou.module.Product;
-import webcrab.core.fangxingou.module.Sku;
-import webcrab.core.fangxingou.module.po.*;
+import webcrab.core.fangxingou.model.Category;
+import webcrab.core.fangxingou.model.Product;
+import webcrab.core.fangxingou.model.Sku;
+import webcrab.core.fangxingou.model.po.*;
 import webcrab.core.util.JsonUtils;
 
 import java.io.IOException;

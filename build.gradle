@@ -35,29 +35,69 @@ dependencies {
 // jar打包成可执行JAR
 def mainClassName = "webcrab.gui.fx.FxApp"
 jar {
+    String libfiles = ''
+    configurations.runtime.each {libfiles = libfiles + " dependlib/"+it.name}
     manifest {
         attributes "Main-Class": "$mainClassName"
+        attributes "Class-Path": libfiles
     }
 
-    from {
-        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-    }
+// 将依赖包打入jar中
+//    from {
+//        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+//    }
 
     // 排除重复的文件，防止对proguard造成困扰
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     exclude('META-INF/maven/**')
 }
 
-// 将依赖的jar包导出，供proguard参考
-def dependLibDir = 'build/dependlib'
-task copyDependLibs(type:Copy) {
-    from configurations.runtime
-    // 目标位置
-    into "$dependLibDir"
+/**
+ * 递归删除文件夹中文件，最后删除文件夹
+ */
+void deleteFiles(String path){
+    File f = file(path)
+    if(f.exists()){
+        if(f.isDirectory()){//如果是文件夹
+            File[] fileList = f.listFiles() //获取文件夹中所有子级文件/夹
+            for (File file2 : fileList) {
+                if(file2.isDirectory()){
+                    deleteFiles(file2.getPath())
+                }else{
+                    file2.delete()
+                }
+            }
+        }
+    }
+    f.delete()
 }
 
+task releaseClean(type: Delete) {
+    def releaseDir = "dist"
+    deleteFiles releaseDir
+}
+
+// 将依赖的jar包导出，供proguard参考
+task releaseCopyDependLibs(type: Copy) {
+    from configurations.runtime into "dist/dependlib"
+}
+releaseCopyDependLibs.mustRunAfter(releaseClean)
+
+// 拷贝原jar
+task releaseCopyOriginJar(type: Copy) {
+    def originJarFile = "build/libs/"+jar.archiveName
+    from originJarFile into "dist"
+}
+releaseCopyOriginJar.mustRunAfter(releaseClean)
+
+// 拷贝conf
+task releaseCopyConf(type: Copy) {
+    from "conf" into "dist/conf"
+}
+releaseCopyConf.mustRunAfter(releaseClean)
+
 // 代码混淆
-task proguard(type: proguard.gradle.ProGuardTask) {
+task releaseProguard(type: proguard.gradle.ProGuardTask, dependsOn: [jar, releaseClean, releaseCopyDependLibs]) {
     ext{
         injar = jar.archivePath
         outJar= "dist/myapp-proguard.jar"
@@ -69,5 +109,6 @@ task proguard(type: proguard.gradle.ProGuardTask) {
     configuration 'proguard.cfg'
 }
 
-copyDependLibs.dependsOn jar
-proguard.dependsOn copyDependLibs
+task releaseAll(dependsOn: [releaseProguard, releaseCopyConf, releaseCopyOriginJar]) {
+
+}

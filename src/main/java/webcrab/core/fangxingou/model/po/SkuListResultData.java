@@ -1,4 +1,4 @@
-package webcrab.core.fangxingou.module.po;
+package webcrab.core.fangxingou.model.po;
 
 public class SkuListResultData {
     // "id": 12765412,     // 即为sku_id

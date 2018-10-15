@@ -1,4 +1,4 @@
-package webcrab.core.fangxingou.module.po;
+package webcrab.core.fangxingou.model.po;
 
 public class ProductListParam {
     private String page = "0";// 从0开始

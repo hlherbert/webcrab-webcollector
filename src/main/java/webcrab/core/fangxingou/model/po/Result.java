@@ -1,4 +1,4 @@
-package webcrab.core.fangxingou.module.po;
+package webcrab.core.fangxingou.model.po;
 
 import webcrab.core.util.JsonUtils;
 

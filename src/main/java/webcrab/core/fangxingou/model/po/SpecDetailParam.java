@@ -1,4 +1,4 @@
-package webcrab.core.fangxingou.module.po;
+package webcrab.core.fangxingou.model.po;
 
 public class SpecDetailParam {
     private String id;//规格id (spec_id)

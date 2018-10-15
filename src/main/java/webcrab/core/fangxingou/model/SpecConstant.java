@@ -1,4 +1,4 @@
-package webcrab.core.fangxingou.module;
+package webcrab.core.fangxingou.model;
 
 public class SpecConstant {
 

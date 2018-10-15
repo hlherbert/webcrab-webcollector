@@ -1,4 +1,4 @@
-package webcrab.core.fangxingou.module.po;
+package webcrab.core.fangxingou.model.po;
 
 public class ProductDelParam {
     private String productId;// 商品id，和接入方的out_product_id二选一

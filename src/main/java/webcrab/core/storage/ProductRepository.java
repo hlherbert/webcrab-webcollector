@@ -1,6 +1,6 @@
 package webcrab.core.storage;
 
-import webcrab.core.fangxingou.module.SpecIndex;
+import webcrab.core.fangxingou.model.SpecIndex;
 import webcrab.core.taobao.model.TaobaoItem;
 
 import java.util.ArrayList;

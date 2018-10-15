@@ -3,7 +3,7 @@ package webcrab.core.convert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import webcrab.core.conf.SellerProperties;
-import webcrab.core.fangxingou.module.*;
+import webcrab.core.fangxingou.model.*;
 import webcrab.core.taobao.model.TaobaoItem;
 import webcrab.core.taobao.model.TaobaoSku;
 import webcrab.core.taobao.model.TaobaoSpec;
